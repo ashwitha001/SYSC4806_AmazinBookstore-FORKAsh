@@ -19,4 +19,9 @@ public class Bookstore {
         }
         return results;
     }
+
+    // New method to get the list of books in the bookstore
+    public List<Book> getBooks() {
+        return new ArrayList<>(books); 
+    }
 }
