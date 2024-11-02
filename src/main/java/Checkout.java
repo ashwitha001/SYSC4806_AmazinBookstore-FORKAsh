@@ -3,6 +3,10 @@ import java.util.Map;
 public class Checkout {
     private ShoppingCart cart;
 
+    /**
+     * Checkout class constructor
+     * @param cart
+     */
     public Checkout(ShoppingCart cart) {
         this.cart = cart;
     }
