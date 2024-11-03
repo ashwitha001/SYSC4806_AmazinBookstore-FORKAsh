@@ -1,83 +1,81 @@
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+
+@Entity
 public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String username;
-    private ShoppingCart cart;
-    private Set<Book> pastPurchases;
-    private Bookstore bookstore; // Reference to the bookstore
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Checkout> purchases;
 
     /**
-     * User class constructor
-     * @param username
-     * @param bookstore
+     * Default constructor for User.
      */
-    public User(String username, Bookstore bookstore) {
+    public User() {
+    }
+
+    /**
+     * Constructor for User with username.
+     * @param username the username of the user
+     */
+    public User(String username) {
         this.username = username;
-        this.cart = new ShoppingCart();
-        this.pastPurchases = new HashSet<>();
-        this.bookstore = bookstore; // Initialize bookstore reference
     }
 
     /**
-     * User can add book to their cart
-     * @param book
-     * @param quantity
+     * Gets the unique identifier of the user.
+     * @return the unique identifier of the user
      */
-    public void addToCart(Book book, int quantity) {
-        cart.addItem(book, quantity);
+    public Long getId() {
+        return id;
     }
 
     /**
-     * User can remove book from their cart
-     * @param book
-     * @param quantity
+     * Sets the unique identifier of the user.
+     * @param id the unique identifier to set for the user
      */
-    public void removeFromCart(Book book, int quantity) {
-        cart.removeItem(book, quantity);
+    public void setId(Long id) {
+        this.id = id;
     }
 
     /**
-     * User checks out
-     * @return true if the purchase was successful, false if there was insufficient inventory
-     */
-    public boolean checkoutProcess() {
-        Checkout checkout = new Checkout(cart);
-        boolean purchaseSuccessful = checkout.processPurchase();
-        if (purchaseSuccessful) {
-            pastPurchases.addAll(cart.getItems().keySet());
-        }
-        return purchaseSuccessful;
-    }
-
-    /**
-     * User can search for books by title
-     * @param title
-     * @return List of matching books
-     */
-    public List<Book> searchBooksByTitle(String title) {
-        return bookstore.searchByTitle(title);
-    }
-
-    public List<Book> getRecommendations(List<User> users) {
-        // Implement Jaccard distance
-        return null; 
-    }
-
-    /**
-     * Gets the items in the user's cart
-     * @return the shopping cart associated with the user
-     */
-    public ShoppingCart getCart() {
-        return cart;
-    }
-    
-    /**
-     * Gets the user's name
+     * Gets the username of the user.
      * @return the username of the user
      */
     public String getUsername() {
         return username;
+    }
+
+    /**
+     * Sets the username of the user.
+     * @param username the username to set for the user
+     */
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    /**
+     * Gets the list of purchases made by the user.
+     * @return the list of purchases
+     */
+    public List<Checkout> getPurchases() {
+        return purchases;
+    }
+
+    /**
+     * Sets the list of purchases made by the user.
+     * @param purchases the list of purchases to set
+     */
+    public void setPurchases(List<Checkout> purchases) {
+        this.purchases = purchases;
     }
 }
