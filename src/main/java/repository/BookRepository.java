@@ -8,5 +8,5 @@ import model.Book;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long>{
-    List<Book> findByTitle(String title);
+    List<Book> findByTitleContaining(String title);
 }

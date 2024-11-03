@@ -14,7 +14,7 @@ This project uses GitHub Projects to manage tasks. The current Kanban board is d
   - 
 
 - **In Progress**:
-  - 
+  - RESTful controllers for a SPA
 
 - **Completed**:
   - 
