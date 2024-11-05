@@ -1,4 +1,5 @@
 package model;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -6,7 +7,7 @@ import jakarta.persistence.Id;
 
 @Entity
 public class Book {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private long isbn;
@@ -15,14 +16,14 @@ public class Book {
     private String description;
     private String author;
     private String publisher;
-    private String pictureURL; 
+    private String pictureURL;
     private double price;
     private int inventory; // Available stock
 
     // Default JPA Constructor
     public Book() {}
 
-    /** 
+    /**
      * Constructs a new Book with the specified details.
      *
      * @param title - the title of the book
@@ -33,18 +34,18 @@ public class Book {
      * @param price - the price of the book
      * @param inventory - the number of copies available in stock
      */
-    public Book(String title, String description, String author, 
+    public Book(String title, String description, String author,
                 String publisher, String pictureURL, Double price, Integer inventory) {
         this.title = title;
         this.description = description;
         this.author = author;
         this.publisher = publisher;
         this.pictureURL = pictureURL;
-        this.price = price;
-        this.inventory = inventory;
+        setPrice(price); // Use setter to enforce validation
+        setInventory(inventory); // Use setter to enforce validation
     }
 
-    /** 
+    /**
      * Gets the ISBN of the book.
      * @return the ISBN of the book
      */
@@ -52,7 +53,7 @@ public class Book {
         return isbn;
     }
 
-    /** 
+    /**
      * Sets the ISBN of the book.
      * @param isbn the new ISBN of the book
      */
@@ -60,7 +61,7 @@ public class Book {
         this.isbn = isbn;
     }
 
-    /** 
+    /**
      * Gets the title of the book.
      * @return the title of the book
      */
@@ -68,7 +69,7 @@ public class Book {
         return title;
     }
 
-    /** 
+    /**
      * Sets the title of the book.
      * @param title the new title of the book
      */
@@ -76,7 +77,7 @@ public class Book {
         this.title = title;
     }
 
-    /** 
+    /**
      * Gets the description of the book.
      * @return the description of the book
      */
@@ -84,7 +85,7 @@ public class Book {
         return description;
     }
 
-    /** 
+    /**
      * Sets the description of the book.
      * @param description the new description of the book
      */
@@ -92,7 +93,7 @@ public class Book {
         this.description = description;
     }
 
-    /** 
+    /**
      * Gets the author of the book.
      * @return the author of the book
      */
@@ -100,7 +101,7 @@ public class Book {
         return author;
     }
 
-    /** 
+    /**
      * Sets the author of the book.
      * @param author the new author of the book
      */
@@ -108,7 +109,7 @@ public class Book {
         this.author = author;
     }
 
-    /** 
+    /**
      * Gets the publisher of the book.
      * @return the publisher of the book
      */
@@ -116,7 +117,7 @@ public class Book {
         return publisher;
     }
 
-    /** 
+    /**
      * Sets the publisher of the book.
      * @param publisher the new publisher of the book
      */
@@ -124,7 +125,7 @@ public class Book {
         this.publisher = publisher;
     }
 
-    /** 
+    /**
      * Gets the URL of the book's cover picture.
      * @return the picture URL of the book
      */
@@ -132,7 +133,7 @@ public class Book {
         return pictureURL;
     }
 
-    /** 
+    /**
      * Sets the URL of the book's cover picture.
      * @param pictureURL the new picture URL of the book
      */
@@ -140,7 +141,7 @@ public class Book {
         this.pictureURL = pictureURL;
     }
 
-    /** 
+    /**
      * Gets the price of the book.
      * @return the price of the book
      */
@@ -148,15 +149,19 @@ public class Book {
         return price;
     }
 
-    /** 
+    /**
      * Sets the price of the book.
+     * Throws IllegalArgumentException if price is negative or null.
      * @param price the new price of the book
      */
     public void setPrice(Double price) {
+        if (price == null || price < 0) {
+            throw new IllegalArgumentException("Price cannot be negative or null");
+        }
         this.price = price;
     }
 
-    /** 
+    /**
      * Gets the available inventory of the book.
      * @return the inventory of the book
      */
@@ -164,11 +169,15 @@ public class Book {
         return inventory;
     }
 
-    /** 
+    /**
      * Sets the available inventory of the book.
+     * Throws IllegalArgumentException if inventory is negative or null.
      * @param inventory the new inventory of the book
      */
     public void setInventory(Integer inventory) {
+        if (inventory == null || inventory < 0) {
+            throw new IllegalArgumentException("Inventory cannot be negative or null");
+        }
         this.inventory = inventory;
     }
 }
