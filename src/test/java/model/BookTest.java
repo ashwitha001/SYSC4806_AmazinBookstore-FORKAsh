@@ -10,9 +10,15 @@ public class BookTest {
 
     @Before
     public void setUp() {
-        book = new Book("Test Title", "Test Description", "Test Author",
-                "Test Publisher", "http://example.com/picture.jpg",
-                29.99, 10);
+        book = new Book(
+            "Test Title",
+            "Test Description",
+            "Test Author",
+            "Test Publisher",
+            "http://example.com/test.jpg",
+            10.00,
+            10
+        );
     }
 
     @Test
@@ -73,7 +79,7 @@ public class BookTest {
 
     @Test
     public void getPictureURL() {
-        assertEquals("http://example.com/picture.jpg", book.getPictureURL());
+        assertEquals("http://example.com/test.jpg", book.getPictureURL());
     }
 
     @Test
@@ -84,7 +90,7 @@ public class BookTest {
 
     @Test
     public void getPrice() {
-        assertEquals(29.99, book.getPrice(), 0.001);
+        assertEquals(10.00, book.getPrice(), 0.001);
     }
 
     @Test
