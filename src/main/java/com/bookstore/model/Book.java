@@ -1,16 +1,19 @@
-package model;
+package com.bookstore.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 public class Book {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private long isbn;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id; // Primary key
+
+    private String isbn;
 
     private String title;
     private String description;
@@ -34,8 +37,10 @@ public class Book {
      * @param price - the price of the book
      * @param inventory - the number of copies available in stock
      */
-    public Book(String title, String description, String author,
+    public Book(int id, String isbn, String title, String description, String author,
                 String publisher, String pictureURL, Double price, Integer inventory) {
+        this.id = id;
+        this.isbn = isbn;
         this.title = title;
         this.description = description;
         this.author = author;
@@ -47,9 +52,10 @@ public class Book {
 
     /**
      * Gets the ISBN of the book.
+     *
      * @return the ISBN of the book
      */
-    public long getIsbn() {
+    public String getIsbn() {
         return isbn;
     }
 
@@ -57,7 +63,7 @@ public class Book {
      * Sets the ISBN of the book.
      * @param isbn the new ISBN of the book
      */
-    public void setIsbn(long isbn) {
+    public void setIsbn(String isbn) {
         this.isbn = isbn;
     }
 
@@ -179,5 +185,13 @@ public class Book {
             throw new IllegalArgumentException("Inventory cannot be negative or null");
         }
         this.inventory = inventory;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

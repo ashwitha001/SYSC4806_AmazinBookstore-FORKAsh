@@ -1,4 +1,4 @@
-package controller;
+package com.bookstore.controller;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import model.Book;
-import model.Checkout;
-import model.User;
-import repository.BookRepository;
-import repository.CheckoutRepository;
-import repository.UserRepository;
+import com.bookstore.model.Book;
+import com.bookstore.model.Checkout;
+import com.bookstore.model.User;
+import com.bookstore.repository.BookRepository;
+import com.bookstore.repository.CheckoutRepository;
+import com.bookstore.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/purchase")

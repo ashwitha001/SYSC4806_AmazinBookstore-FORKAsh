@@ -1,4 +1,4 @@
-package model;
+package com.bookstore.model;
 import java.time.LocalDateTime;
 import java.util.List;
 

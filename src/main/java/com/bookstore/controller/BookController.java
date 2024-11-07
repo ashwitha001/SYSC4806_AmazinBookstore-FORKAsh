@@ -1,33 +1,33 @@
-package controller;
+package com.bookstore.controller;
+
+import com.bookstore.model.Book;
+import com.bookstore.repository.BookRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import model.Book;
-import repository.BookRepository;
 
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
-    
+
     @Autowired
     private BookRepository bookRepository;
 
+    // Get all books
     @GetMapping
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
 
+    // Get book by ID
+    @GetMapping("/{id}")
+    public Book getBookById(@PathVariable Long id) {
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+    }
+
+    // Search by title
     @GetMapping("/search")
     public List<Book> searchBooks(@RequestParam String keyword) {
         return bookRepository.findByTitleContainingIgnoreCase(keyword);
@@ -57,11 +57,13 @@ public class BookController {
         return bookRepository.findByInventoryGreaterThan(minInventory);
     }
 
+    // Upload a new book
     @PostMapping
     public Book uploadBook(@RequestBody Book book) {
         return bookRepository.save(book);
     }
 
+    // Edit an existing book
     @PutMapping("/{id}")
     public Book editBook(@PathVariable Long id, @RequestBody Book bookDetails) {
         Book book = bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
@@ -77,7 +79,7 @@ public class BookController {
         return bookRepository.save(book);
     }
 
-    // Add an endpoint for deleting books
+    // Delete a book
     @DeleteMapping("/{id}")
     public void deleteBook(@PathVariable Long id) {
         bookRepository.deleteById(id);
