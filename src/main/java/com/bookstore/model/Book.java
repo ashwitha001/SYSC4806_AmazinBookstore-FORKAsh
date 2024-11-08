@@ -13,6 +13,7 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id; // Primary key
 
+
     private String isbn;
 
     private String title;
@@ -37,9 +38,8 @@ public class Book {
      * @param price - the price of the book
      * @param inventory - the number of copies available in stock
      */
-    public Book(int id, String isbn, String title, String description, String author,
+    public Book(String isbn, String title, String description, String author,
                 String publisher, String pictureURL, Double price, Integer inventory) {
-        this.id = id;
         this.isbn = isbn;
         this.title = title;
         this.description = description;

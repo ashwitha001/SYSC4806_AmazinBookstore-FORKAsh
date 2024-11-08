@@ -3,6 +3,8 @@ import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,6 +19,9 @@ public class User {
     private Long id;
     private String username;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Checkout> purchases;
 
@@ -30,8 +35,9 @@ public class User {
      * Constructor for User with username.
      * @param username the username of the user
      */
-    public User(String username) {
+    public User(String username, Role role) {
         this.username = username;
+        this.role = role;
     }
 
     /**
@@ -64,6 +70,22 @@ public class User {
      */
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    /**
+     * Gets the role of the user.
+     * @return the role of the user
+     */
+    public Role getRole() {
+        return role;
+    }
+
+    /**
+     * Sets the role of the user.
+     * @param role the role to set for the user
+     */
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     /**

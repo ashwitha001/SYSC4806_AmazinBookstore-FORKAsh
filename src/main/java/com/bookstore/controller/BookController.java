@@ -1,18 +1,29 @@
 package com.bookstore.controller;
 
 import com.bookstore.model.Book;
+import com.bookstore.model.Role;
+import com.bookstore.model.User;
 import com.bookstore.repository.BookRepository;
+import com.bookstore.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller for handling book-related API endpoints.
+ */
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
 
     @Autowired
     private BookRepository bookRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     // Get all books
     @GetMapping
@@ -22,9 +33,10 @@ public class BookController {
 
     // Get book by ID
     @GetMapping("/{id}")
-    public Book getBookById(@PathVariable Long id) {
+    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
         return bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .map(book -> ResponseEntity.ok().body(book))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // Search by title
@@ -57,31 +69,54 @@ public class BookController {
         return bookRepository.findByInventoryGreaterThan(minInventory);
     }
 
-    // Upload a new book
+    // Upload a new book (Admin only)
     @PostMapping
-    public Book uploadBook(@RequestBody Book book) {
-        return bookRepository.save(book);
+    public ResponseEntity<?> uploadBook(@RequestBody Book book, @RequestParam Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null || user.getRole() != Role.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.");
+        }
+        try {
+            Book savedBook = bookRepository.save(book);
+            return ResponseEntity.ok(savedBook);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error saving book: " + e.getMessage());
+        }
     }
 
-    // Edit an existing book
+    // Edit an existing book (Admin only)
     @PutMapping("/{id}")
-    public Book editBook(@PathVariable Long id, @RequestBody Book bookDetails) {
-        Book book = bookRepository.findById(id).orElseThrow(() -> new RuntimeException("Book not found"));
-        book.setIsbn(bookDetails.getIsbn());
-        book.setTitle(bookDetails.getTitle());
-        book.setDescription(bookDetails.getDescription());
-        book.setAuthor(bookDetails.getAuthor());
-        book.setPublisher(bookDetails.getPublisher());
-        book.setPictureURL(bookDetails.getPictureURL());
-        book.setPrice(bookDetails.getPrice());
-        book.setInventory(bookDetails.getInventory());
+    public ResponseEntity<?> editBook(@PathVariable Long id, @RequestBody Book bookDetails, @RequestParam Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null || user.getRole() != Role.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.");
+        }
 
-        return bookRepository.save(book);
+        return bookRepository.findById(id).map(book -> {
+            book.setIsbn(bookDetails.getIsbn());
+            book.setTitle(bookDetails.getTitle());
+            book.setDescription(bookDetails.getDescription());
+            book.setAuthor(bookDetails.getAuthor());
+            book.setPublisher(bookDetails.getPublisher());
+            book.setPictureURL(bookDetails.getPictureURL());
+            book.setPrice(bookDetails.getPrice());
+            book.setInventory(bookDetails.getInventory());
+            bookRepository.save(book);
+            return ResponseEntity.ok(book);
+        }).orElse(ResponseEntity.notFound().build());
     }
 
-    // Delete a book
+    // Delete a book (Admin only)
     @DeleteMapping("/{id}")
-    public void deleteBook(@PathVariable Long id) {
-        bookRepository.deleteById(id);
+    public ResponseEntity<?> deleteBook(@PathVariable Long id, @RequestParam Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null || user.getRole() != Role.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.");
+        }
+
+        return bookRepository.findById(id).map(book -> {
+            bookRepository.delete(book);
+            return ResponseEntity.ok().body("Book deleted successfully.");
+        }).orElse(ResponseEntity.notFound().build());
     }
 }
