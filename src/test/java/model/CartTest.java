@@ -54,7 +54,6 @@ public class CartTest {
         assertEquals("adminUser", adminCart.getUser().getUsername());
         assertEquals(Role.ADMIN, adminCart.getUser().getRole());
 
-        // Verify that getUser() returns the correct user for customerCart
         assertEquals(customerUser, customerCart.getUser());
         assertEquals("customerUser", customerCart.getUser().getUsername());
         assertEquals(Role.CUSTOMER, customerCart.getUser().getRole());
