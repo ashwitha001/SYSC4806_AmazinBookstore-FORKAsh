@@ -1,5 +1,6 @@
 package model;
 
+import com.bookstore.model.Book;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -10,27 +11,21 @@ public class BookTest {
 
     @Before
     public void setUp() {
-        book = new Book(
-            "Test Title",
-            "Test Description",
-            "Test Author",
-            "Test Publisher",
-            "http://example.com/test.jpg",
-            10.00,
-            10
-        );
+        book = new Book("Test ISBN", "Test Title", "Test Description", "Test Author",
+                "Test Publisher", "http://example.com/picture.jpg",
+                29.99, 10);
     }
 
     @Test
     public void getIsbn() {
-        book.setIsbn(123456789L);
-        assertEquals(123456789L, book.getIsbn());
+        book.setIsbn("123456789L");
+        assertEquals("123456789L", book.getIsbn());
     }
 
     @Test
     public void setIsbn() {
-        book.setIsbn(987654321L);
-        assertEquals(987654321L, book.getIsbn());
+        book.setIsbn("987654321L");
+        assertEquals("987654321L", book.getIsbn());
     }
 
     @Test
@@ -79,7 +74,7 @@ public class BookTest {
 
     @Test
     public void getPictureURL() {
-        assertEquals("http://example.com/test.jpg", book.getPictureURL());
+        assertEquals("http://example.com/picture.jpg", book.getPictureURL());
     }
 
     @Test
@@ -90,7 +85,7 @@ public class BookTest {
 
     @Test
     public void getPrice() {
-        assertEquals(10.00, book.getPrice(), 0.001);
+        assertEquals(29.99, book.getPrice(), 0.001);
     }
 
     @Test
