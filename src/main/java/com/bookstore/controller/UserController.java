@@ -4,10 +4,21 @@ import com.bookstore.model.User;
 import com.bookstore.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controller for managing user accounts and their related operations.
+ */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -15,19 +26,25 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-    // Get all users
+    /**
+     * Retrieves a list of all users in the system.
+     */
     @GetMapping
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // Create a new user
+    /**
+     * Creates a new user account in the system.
+     */
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userRepository.save(user);
     }
 
-    // Get a single user by ID
+    /**
+     * Retrieves a specific user by their unique identifier.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         return userRepository.findById(id)
@@ -35,7 +52,9 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Update user method
+    /**
+     * Updates an existing user's information based on their ID.
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         Optional<User> optionalUser = userRepository.findById(id);
@@ -49,7 +68,9 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    // Delete a user
+    /**
+     * Removes a user account from the system.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         return userRepository.findById(id)
@@ -59,5 +80,3 @@ public class UserController {
                 }).orElse(ResponseEntity.notFound().build());
     }
 }
-
-

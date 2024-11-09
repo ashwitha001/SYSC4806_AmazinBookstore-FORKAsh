@@ -1,5 +1,10 @@
 package com.bookstore.dto;
 
+/**
+ * Data Transfer Object representing a cart item.
+ * Contains the book ID and quantity of the item.
+ * Used for adding and removing items from the cart.
+ */
 public class CartItemDTO {
     private Long bookId;
     private int quantity;

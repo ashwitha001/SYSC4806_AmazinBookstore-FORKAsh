@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('searchBtn').addEventListener('click', searchBooks);
     document.getElementById('viewCartBtn').addEventListener('click', viewCart);
     document.getElementById('roleSwitchBtn').addEventListener('click', switchRole);
+    document.getElementById('homeBtn').addEventListener('click', showHome);
+    document.getElementById('viewHistoryBtn').addEventListener('click', viewPurchaseHistory);
 
     // Load initial content based on role
     updateRoleView();
@@ -32,17 +34,80 @@ function switchRole() {
 }
 
 function updateRoleView() {
-    const cartButton = document.getElementById('viewCartBtn');
+    const customerActions = document.getElementById('customerActions');
 
     if (currentUserRole === 'admin') {
         // Hide customer-specific elements
-        cartButton.style.display = 'none';
+        customerActions.style.display = 'none';
         loadAdminView();
     } else {
         // Show customer-specific elements
-        cartButton.style.display = 'inline-block';
+        customerActions.style.display = 'flex';
         loadBooks();
     }
+}
+
+function viewPurchaseHistory() {
+    const content = document.getElementById('content');
+    content.innerHTML = '<h2>Purchase History</h2>';
+
+    fetch(`${apiUrl}/users/${currentUserId}`)
+        .then(response => response.json())
+        .then(user => {
+            if (!user.purchases || user.purchases.length === 0) {
+                content.innerHTML += '<p>No purchase history found.</p>';
+                return;
+            }
+
+            // Sort purchases by date in descending order (most recent first)
+            const sortedPurchases = user.purchases.sort((a, b) =>
+                new Date(b.purchaseDate) - new Date(a.purchaseDate)
+            );
+
+            sortedPurchases.forEach(purchase => {
+                const purchaseDiv = document.createElement('div');
+                purchaseDiv.className = 'purchase-record';
+
+                // Format the date
+                const purchaseDate = new Date(purchase.purchaseDate).toLocaleString();
+
+                let totalItems = 0;
+                let totalCost = 0;
+
+                // Calculate totals and build items list
+                const itemsList = purchase.items.map(item => {
+                    totalItems += item.quantity;
+                    const itemTotal = item.purchasePrice * item.quantity;
+                    totalCost += itemTotal;
+                    return `
+                        <div class="purchase-item">
+                            <p><strong>${item.title}</strong> by ${item.author}</p>
+                            <p>Quantity: ${item.quantity}</p>
+                            <p>Price: $${item.purchasePrice.toFixed(2)}</p>
+                            <p>Total: $${itemTotal.toFixed(2)}</p>
+                        </div>
+                    `;
+                }).join('');
+
+                purchaseDiv.innerHTML = `
+                    <div class="purchase-header">
+                        <h3>Purchase Date: ${purchaseDate}</h3>
+                        <p><strong>Total Items:</strong> ${totalItems}</p>
+                        <p><strong>Total Cost:</strong> $${totalCost.toFixed(2)}</p>
+                    </div>
+                    <div class="purchase-items">
+                        ${itemsList}
+                    </div>
+                    <hr>
+                `;
+
+                content.appendChild(purchaseDiv);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching purchase history:', error);
+            content.innerHTML += '<p>Error loading purchase history. Please try again later.</p>';
+        });
 }
 
 function loadBooks() {
@@ -54,6 +119,14 @@ function loadBooks() {
         .catch(error => {
             console.error('Error fetching books:', error);
         });
+}
+
+function showHome() {
+    if (currentUserRole === 'admin') {
+        loadAdminView();
+    } else {
+        loadBooks();
+    }
 }
 
 function updateSearchInputs() {

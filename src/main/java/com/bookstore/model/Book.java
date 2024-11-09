@@ -4,7 +4,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 @Entity
 public class Book {
@@ -187,10 +186,18 @@ public class Book {
         this.inventory = inventory;
     }
 
+    /**
+     * Gets the ID of this book.
+     * @return the ID of this book
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     * Sets the ID of this book.
+     * @param id the new ID for this book
+     */
     public void setId(int id) {
         this.id = id;
     }

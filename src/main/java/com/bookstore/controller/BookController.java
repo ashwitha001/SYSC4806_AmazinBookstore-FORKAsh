@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controller for handling book-related API endpoints.
+ * Controller for managing books and handling book-related operations in the bookstore.
  */
 @RestController
 @RequestMapping("/api/books")
@@ -25,13 +25,17 @@ public class BookController {
     @Autowired
     private UserRepository userRepository;
 
-    // Get all books
+    /**
+     * Retrieves all books from the database.
+     */
     @GetMapping
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
 
-    // Get book by ID
+    /**
+     * Finds a specific book by its unique identifier.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable Long id) {
         return bookRepository.findById(id)
@@ -39,37 +43,49 @@ public class BookController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Search by title
+    /**
+     * Searches for books by matching title keywords.
+     */
     @GetMapping("/search")
     public List<Book> searchBooks(@RequestParam String keyword) {
         return bookRepository.findByTitleContainingIgnoreCase(keyword);
     }
 
-    // Search by author
+    /**
+     * Searches for books by author name.
+     */
     @GetMapping("/search/author")
     public List<Book> searchBooksByAuthor(@RequestParam String author) {
         return bookRepository.findByAuthorContainingIgnoreCase(author);
     }
 
-    // Search by publisher
+    /**
+     * Searches for books by publisher name.
+     */
     @GetMapping("/search/publisher")
     public List<Book> searchBooksByPublisher(@RequestParam String publisher) {
         return bookRepository.findByPublisherContainingIgnoreCase(publisher);
     }
 
-    // Filter by price range
+    /**
+     * Filters books within a specified price range.
+     */
     @GetMapping("/filter/price")
     public List<Book> filterBooksByPrice(@RequestParam Double minPrice, @RequestParam Double maxPrice) {
         return bookRepository.findByPriceBetween(minPrice, maxPrice);
     }
 
-    // Filter by inventory
+    /**
+     * Filters books by minimum inventory level.
+     */
     @GetMapping("/filter/inventory")
     public List<Book> filterBooksByInventory(@RequestParam int minInventory) {
         return bookRepository.findByInventoryGreaterThan(minInventory);
     }
 
-    // Upload a new book (Admin only)
+    /**
+     * Adds a new book to the inventory (admin access required).
+     */
     @PostMapping
     public ResponseEntity<?> uploadBook(@RequestBody Book book, @RequestParam Long userId) {
         User user = userRepository.findById(userId).orElse(null);
@@ -84,7 +100,9 @@ public class BookController {
         }
     }
 
-    // Edit an existing book (Admin only)
+    /**
+     * Updates an existing book's information (admin access required).
+     */
     @PutMapping("/{id}")
     public ResponseEntity<?> editBook(@PathVariable Long id, @RequestBody Book bookDetails, @RequestParam Long userId) {
         User user = userRepository.findById(userId).orElse(null);
@@ -106,7 +124,9 @@ public class BookController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // Delete a book (Admin only)
+    /**
+     * Removes a book from the inventory (admin access required).
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteBook(@PathVariable Long id, @RequestParam Long userId) {
         User user = userRepository.findById(userId).orElse(null);
