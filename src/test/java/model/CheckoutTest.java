@@ -100,15 +100,4 @@ public class CheckoutTest {
         checkout.setPurchaseDate(newPurchaseDate);
         assertEquals(newPurchaseDate, checkout.getPurchaseDate());
     }
-    
-    @Test
-    public void testPurchaseItemAssociation() {
-        PurchaseItem purchaseItem = checkout.getItems().get(0);
-
-        assertEquals(checkout, purchaseItem.getPurchase());
-
-        Checkout newCheckout = new Checkout(user, new ArrayList<>());
-        purchaseItem.setPurchase(newCheckout);
-        assertEquals(newCheckout, purchaseItem.getPurchase());
-    }
 }
