@@ -1,5 +1,6 @@
 package model;
 
+import com.bookstore.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -8,57 +9,76 @@ import java.util.List;
 
 public class CartTest {
 
-    private Cart cart;
-    private User user;
+    private Cart adminCart;
+    private Cart customerCart;
+    private User adminUser;
+    private User customerUser;
     private CartItem cartItem;
 
     @Before
     public void setUp() {
-        user = new User("testUser");
-        cart = new Cart(user);
+        adminUser = new User("adminUser", Role.ADMIN);
+        adminCart = new Cart(adminUser);
+
+        customerUser = new User("customerUser", Role.CUSTOMER);
+        customerCart = new Cart(customerUser);
 
         Book book = new Book(
-            "Test Title",
-            "Test Description",
-            "Test Author",
-            "Test Publisher",
-            "http://example.com/test.jpg",
-            10.00,
-            100
+                "Test ISBN",
+                "Test Title",
+                "Test Description",
+                "Test Author",
+                "Test Publisher",
+                "http://example.com/test.jpg",
+                10.00,
+                100
         );
-        cartItem = new CartItem(book, 2, cart);
+        cartItem = new CartItem(book, 2, adminCart);
     }
 
     @Test
     public void getId() {
-        cart.setId(1L);
-        assertEquals(Long.valueOf(1L), cart.getId());
+        adminCart.setId(1L);
+        assertEquals(Long.valueOf(1L), adminCart.getId());
     }
 
     @Test
     public void setId() {
-        cart.setId(2L);
-        assertEquals(Long.valueOf(2L), cart.getId());
+        adminCart.setId(2L);
+        assertEquals(Long.valueOf(2L), adminCart.getId());
     }
 
     @Test
     public void getUser() {
-        assertEquals(user, cart.getUser());
-        assertEquals("testUser", cart.getUser().getUsername()); 
+        assertEquals(adminUser, adminCart.getUser());
+        assertEquals("adminUser", adminCart.getUser().getUsername());
+        assertEquals(Role.ADMIN, adminCart.getUser().getRole());
+
+        // Verify that getUser() returns the correct user for customerCart
+        assertEquals(customerUser, customerCart.getUser());
+        assertEquals("customerUser", customerCart.getUser().getUsername());
+        assertEquals(Role.CUSTOMER, customerCart.getUser().getRole());
     }
 
     @Test
     public void setUser() {
-        User newUser = new User("newUser");
-        cart.setUser(newUser);
-        assertEquals(newUser, cart.getUser());
-        assertEquals("newUser", cart.getUser().getUsername());
+        User newAdminUser = new User("newAdmin", Role.ADMIN);
+        adminCart.setUser(newAdminUser);
+        assertEquals(newAdminUser, adminCart.getUser());
+        assertEquals("newAdmin", adminCart.getUser().getUsername());
+        assertEquals(Role.ADMIN, adminCart.getUser().getRole());
+
+        User newCustomerUser = new User("newCustomer", Role.CUSTOMER);
+        customerCart.setUser(newCustomerUser);
+        assertEquals(newCustomerUser, customerCart.getUser());
+        assertEquals("newCustomer", customerCart.getUser().getUsername());
+        assertEquals(Role.CUSTOMER, customerCart.getUser().getRole());
     }
 
     @Test
     public void getItems() {
-        cart.addItem(cartItem);
-        List<CartItem> items = cart.getItems();
+        adminCart.addItem(cartItem);
+        List<CartItem> items = adminCart.getItems();
         assertEquals(1, items.size());
         assertTrue(items.contains(cartItem));
     }
@@ -68,23 +88,23 @@ public class CartTest {
         List<CartItem> newItems = new ArrayList<>();
         newItems.add(cartItem);
 
-        cart.setItems(newItems);
-        assertEquals(newItems, cart.getItems());
-        assertEquals(cart, cartItem.getCart());
+        adminCart.setItems(newItems);
+        assertEquals(newItems, adminCart.getItems());
+        assertEquals(adminCart, cartItem.getCart());
     }
 
     @Test
     public void addItem() {
-        cart.addItem(cartItem);
-        assertTrue(cart.getItems().contains(cartItem));
-        assertEquals(cart, cartItem.getCart()); 
+        adminCart.addItem(cartItem);
+        assertTrue(adminCart.getItems().contains(cartItem));
+        assertEquals(adminCart, cartItem.getCart());
     }
 
     @Test
     public void removeItem() {
-        cart.addItem(cartItem);
-        cart.removeItem(cartItem);
-        assertFalse(cart.getItems().contains(cartItem));
+        adminCart.addItem(cartItem);
+        adminCart.removeItem(cartItem);
+        assertFalse(adminCart.getItems().contains(cartItem));
         assertNull(cartItem.getCart()); 
     }
 }

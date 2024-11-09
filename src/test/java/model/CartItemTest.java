@@ -1,5 +1,6 @@
 package model;
 
+import com.bookstore.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -12,14 +13,15 @@ public class CartItemTest {
 
     @Before
     public void setUp() {
-        Book book = new Book(
-            "Test Title",
-            "Test Description",
-            "Test Author",
-            "Test Publisher",
-            "http://example.com/test.jpg",
-            10.00,
-            100
+        book = new Book(
+                "Test ISBN",
+                "Test Title",
+                "Test Description",
+                "Test Author",
+                "Test Publisher",
+                "http://example.com/test.jpg",
+                10.00,
+                100
         );
 
         cart = new Cart();
@@ -46,13 +48,14 @@ public class CartItemTest {
     @Test
     public void setBook() {
         Book newBook = new Book(
-            "New Title",
-            "New Description",
-            "New Author",
-            "New Publisher",
-            "http://example.com/new.jpg",
-            39.99,
-            50
+                "New ISBN",
+                "New Title",
+                "New Description",
+                "New Author",
+                "New Publisher",
+                "http://example.com/new.jpg",
+                39.99,
+                50
         );
         cartItem.setBook(newBook);
         assertEquals(newBook, cartItem.getBook());

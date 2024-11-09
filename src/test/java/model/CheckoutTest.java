@@ -2,7 +2,7 @@ package model;
 
 import org.junit.Before;
 import org.junit.Test;
-
+import com.bookstore.model.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +18,11 @@ public class CheckoutTest {
 
     @Before
     public void setUp() {
-        user = new User("testUser");
+        user = new User("customerUser", Role.CUSTOMER);
         items = new ArrayList<>();
         
         Book book = new Book(
+                "Test ISBN",
             "Test Title",
             "Test Description",
             "Test Author",
@@ -52,15 +53,17 @@ public class CheckoutTest {
     @Test
     public void getUser() {
         assertEquals(user, checkout.getUser());
-        assertEquals("testUser", checkout.getUser().getUsername());
+        assertEquals("customerUser", checkout.getUser().getUsername());
+        assertEquals(Role.CUSTOMER, checkout.getUser().getRole());
     }
 
     @Test
     public void setUser() {
-        User newUser = new User("newUser");
-        checkout.setUser(newUser);
-        assertEquals(newUser, checkout.getUser());
-        assertEquals("newUser", checkout.getUser().getUsername());
+        User newCustomerUser = new User("newCustomer", Role.CUSTOMER);
+        checkout.setUser(newCustomerUser);
+        assertEquals(newCustomerUser, checkout.getUser());
+        assertEquals("newCustomer", checkout.getUser().getUsername());
+        assertEquals(Role.CUSTOMER, checkout.getUser().getRole());
     }
 
     @Test
@@ -68,14 +71,14 @@ public class CheckoutTest {
         assertEquals(items, checkout.getItems());
         assertEquals(1, checkout.getItems().size());
         assertEquals(items.get(0), checkout.getItems().get(0));
-        assertEquals("Test Title", checkout.getItems().get(0).getBook().getTitle());
+        assertEquals("Test Title", checkout.getItems().get(0).getTitle());
         assertEquals(Integer.valueOf(2), checkout.getItems().get(0).getQuantity());
     }
 
     @Test
     public void setItems() {
         List<PurchaseItem> newItems = new ArrayList<>();
-        Book newBook = new Book("New Book", "Description", "Author", "Publisher", 
+        Book newBook = new Book("New ISBN", "New Book", "Description", "Author", "Publisher",
                 "http://example.com/new.jpg", 19.99, 50);
         PurchaseItem newItem = new PurchaseItem(newBook, 3, checkout);
         newItems.add(newItem);
@@ -84,7 +87,7 @@ public class CheckoutTest {
         assertEquals(newItems, checkout.getItems());
         assertEquals(1, checkout.getItems().size());
         assertEquals(newItem, checkout.getItems().get(0));
-        assertEquals("New Book", checkout.getItems().get(0).getBook().getTitle());
+        assertEquals("New Book", checkout.getItems().get(0).getTitle());
         assertEquals(Integer.valueOf(3), checkout.getItems().get(0).getQuantity());
     }
 
