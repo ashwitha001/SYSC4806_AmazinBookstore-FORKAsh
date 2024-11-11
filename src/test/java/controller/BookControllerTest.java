@@ -12,6 +12,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import jakarta.persistence.EntityManager;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,31 +33,54 @@ public class BookControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    private TransactionTemplate transactionTemplate;
+
     private User adminUser;
     private User customerUser;
     private Book book;
 
     @BeforeEach
     public void setUp() {
-        bookRepository.deleteAll();
-        userRepository.deleteAll();
+        transactionTemplate = new TransactionTemplate(transactionManager);
 
-        adminUser = new User("adminUser", Role.ADMIN);
-        customerUser = new User("customerUser", Role.CUSTOMER);
-        userRepository.save(adminUser);
-        userRepository.save(customerUser);
+        // Execute database cleanup in a transaction
+        transactionTemplate.execute(status -> {
+            entityManager.createNativeQuery("DELETE FROM cart_item").executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM purchase_item").executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM checkout").executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM cart").executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM book").executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM users").executeUpdate();
 
-        book = new Book(
-                "Test ISBN",
-                "Test Title",
-                "Test Description",
-                "Test Author",
-                "Test Publisher",
-                "http://example.com/test.jpg",
-                10.00,
-                10);
-        bookRepository.save(book);
+            // Create test users
+            adminUser = new User("adminUser", Role.ADMIN);
+            customerUser = new User("customerUser", Role.CUSTOMER);
+            userRepository.save(adminUser);
+            userRepository.save(customerUser);
+
+            // Create test book
+            book = new Book(
+                    "Test ISBN",
+                    "Test Title",
+                    "Test Description",
+                    "Test Author",
+                    "Test Publisher",
+                    "http://example.com/test.jpg",
+                    10.00,
+                    10);
+            bookRepository.save(book);
+
+            return null;
+        });
     }
+
+    // Test methods remain the same
     @Test
     public void getAllBooks() throws Exception {
         mockMvc.perform(get("/api/books"))
