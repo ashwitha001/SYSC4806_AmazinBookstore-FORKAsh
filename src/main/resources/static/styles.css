@@ -146,6 +146,102 @@ button.addToCartBtn {
     margin-top: 10px;
 }
 
+/* Authentication Buttons */
+.auth-buttons button {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease-in-out;
+    box-shadow: -4px -4px 10px var(--color-light), 4px 4px 10px var(--color-shadow);
+    margin-left: 10px;
+}
+
+.auth-buttons button:hover {
+    box-shadow: -2px -2px 5px var(--color-light), 2px 2px 5px var(--color-shadow);
+}
+
+.auth-buttons button:active {
+    box-shadow: inset 1px 1px 2px var(--color-shadow), inset -1px -1px 2px var(--color-light);
+}
+
+/* Modal Background */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: var(--color-bg);
+    margin: 10% auto;
+    padding: 20px;
+    width: 300px;
+    border-radius: 12px;
+    box-shadow: 6px 6px 12px var(--color-shadow), -6px -6px 12px var(--color-light);
+    color: var(--color-text);
+    text-align: center;
+}
+
+/* Placeholder Text Color for Modal Inputs */
+.modal-content form input::placeholder {
+    color: var(--color-bg); /* Set the placeholder text color to white */
+}
+
+/* Close Button */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: var(--color-text);
+}
+
+.modal-content form input {
+    width: 90%;
+    padding: 8px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.modal-content form button {
+    width: 100%;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.modal-content form button:hover {
+    background-color: #555;
+}
+
 button#roleSwitchBtn {
     position: fixed;
     bottom: 20px;

@@ -2,11 +2,13 @@ package controller;
 
 import com.bookstore.BookStoreApplication;
 import com.bookstore.model.Book;
+import com.bookstore.dto.RegistrationDTO;
 import com.bookstore.model.Role;
 import com.bookstore.model.User;
 import com.bookstore.repository.BookRepository;
 import com.bookstore.repository.CheckoutRepository;
 import com.bookstore.repository.UserRepository;
+import com.bookstore.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +17,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(classes = BookStoreApplication.class)
 @AutoConfigureMockMvc
@@ -35,6 +37,9 @@ public class PurchaseControllerTest {
     @Autowired
     private CheckoutRepository checkoutRepository;
 
+    @Autowired
+    UserService userService;
+
     private User customerUser;
     private Book book;
 
@@ -46,8 +51,14 @@ public class PurchaseControllerTest {
         userRepository.deleteAll();
 
         // Create and save sample user and book
-        customerUser = new User("customerUser", Role.CUSTOMER);
-        userRepository.save(customerUser);
+
+        // Create customer user
+        RegistrationDTO customer = new RegistrationDTO("customer", "pass", "customer@email.com",
+                "CustomerFirstName", "lastName");
+        userService.register(customer, Role.CUSTOMER);
+        customerUser = userRepository.findByUsernameIgnoreCase("customer")
+                .orElseThrow(() -> new RuntimeException("User not found!"));
+
 
         book = new Book(
                 "Test ISBN",
@@ -64,8 +75,9 @@ public class PurchaseControllerTest {
 
     @Test
     public void successfulCheckout() throws Exception {
+        
         mockMvc.perform(post("/api/purchase/checkout")
-                        .param("userId", customerUser.getId().toString())
+                        .with(user(customerUser.getUsername()).roles("CUSTOMER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[{\"bookId\":" + book.getId() + ",\"quantity\":2}]"))
                 .andExpect(status().isOk())
@@ -80,7 +92,7 @@ public class PurchaseControllerTest {
         Long id = 999L;
 
         mockMvc.perform(post("/api/purchase/checkout")
-                        .param("userId", customerUser.getId().toString())
+                        .with(user(customerUser.getUsername()).roles("CUSTOMER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[{\"bookId\":" + id + ",\"quantity\":1}]"))
                 .andExpect(status().isBadRequest())
@@ -93,7 +105,7 @@ public class PurchaseControllerTest {
         bookRepository.save(book);
 
         mockMvc.perform(post("/api/purchase/checkout")
-                        .param("userId", customerUser.getId().toString())
+                        .with(user(customerUser.getUsername()).roles("CUSTOMER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[{\"bookId\":" + book.getId() + ",\"quantity\":1}]"))
                 .andExpect(status().isBadRequest())
