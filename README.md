@@ -33,9 +33,9 @@ This project uses GitHub Projects to manage tasks. The current Kanban board is d
   - Update README
 
 ## Next Sprint Plan
-### Milestone 2: Alpha Release
-- **Demo Date**: November 25th
-- For the alpha release, the system should be somewhat usable, although not feature-complete. Users should be able to use several related features of the app to accomplish reasonable tasks.
+### Milestone 3: Final Demo
+- **Demo Date**: December 6th
+- For the final sprint of your project you must decide on the final scope of the product: a set of features that can be implemented within the given timeline and makes the product usable and useful. The user interface should not have any dangling links to non-implemented features.
 - **Key Features to Implement**:
   1. Ensure basic book browsing, searching, and purchasing functions.
   2. Ensure filtering and sorting features are implemented.
