@@ -613,6 +613,7 @@ document.getElementById('loginForm').addEventListener('submit', (event) => {
                 alert('Login successful!');
                 loginModal.style.display = 'none';
                 updateLoginStatus();
+                updateRoleView();
             }
         })
         .catch(error => {
