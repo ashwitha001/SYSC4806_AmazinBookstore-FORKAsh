@@ -14,4 +14,5 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findByPublisherContainingIgnoreCase(String publisher);
     List<Book> findByPriceBetween(Double minPrice, Double maxPrice);
     List<Book> findByInventoryGreaterThan(int inventory);
+    List<Book> findByIsbnContainingIgnoreCase(String isbn);
 }

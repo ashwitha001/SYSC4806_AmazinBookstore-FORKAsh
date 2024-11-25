@@ -12,6 +12,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+/**
+* Starts up the application
+*/
 @SpringBootApplication
 public class BookStoreApplication {
 
@@ -34,17 +37,10 @@ public class BookStoreApplication {
     @Bean
     public CommandLineRunner initializeUsers() {
         return args -> {
-            //userRepository.deleteAll();  //may need to uncomment this on first run to allow creation of users
             if (userRepository.count() == 0) {
                 log.info("Initializing default users...");
 
-                // Create customer user
-                RegistrationDTO customer = new RegistrationDTO("customer", "pass", "customer@email.com",
-                        "CustomerFirstName", "lastName");
-                userService.register(customer, Role.CUSTOMER);
-                log.info("Created customer user with ID: {}", customer.getUsername());
-
-                // Create admin user
+                // create admin user
                 RegistrationDTO admin = new RegistrationDTO("admin", "admin123", "admin@email.com",
                         "AdminFirst", "AdminLast");
                 userService.register(admin, Role.ADMIN);

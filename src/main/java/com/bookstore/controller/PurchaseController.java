@@ -6,12 +6,10 @@ import com.bookstore.model.*;
 import com.bookstore.repository.BookRepository;
 import com.bookstore.repository.CheckoutRepository;
 import com.bookstore.repository.UserRepository;
-import org.hibernate.annotations.Check;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.transaction.Transactional;
@@ -21,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Controller for handling purchase-related API endpoints.
@@ -53,7 +52,7 @@ public class PurchaseController {
         String username = principal.getName();
         System.out.println("Username: " + username);
 
-        User user = userRepository.findByUsernameIgnoreCase(username).orElse(null);
+        User user = userRepository.findByUsername(username).orElse(null);
 
         if (user == null || user.getRole() != Role.CUSTOMER) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found or invalid role.");
@@ -113,31 +112,34 @@ public class PurchaseController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<PurchaseDTO>> getPurchaseHistory(Principal principal) {
         String username = principal.getName();
-        User user = userRepository.findByUsernameIgnoreCase(username).orElse(null);
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
         List<Checkout> checkouts = purchaseRepository.findByUser(user);
-        // Map the purchase entities to DTOs
-        List<PurchaseDTO> purchaseHistory = checkouts.stream()
-                .map(purchase -> new PurchaseDTO(
-                        purchase.getId(),
-                        purchase.getPurchaseDate(),
-                        purchase.getItems().stream()
-                                .map(item -> new CartItemDTO(item.getBookId(), item.getQuantity()))
-                                .toList()
-                ))
-                .toList();
+        List<PurchaseDTO> purchaseHistory = new ArrayList<>();
+
+        for (Checkout checkout : checkouts) {
+            List<CartItemDTO> items = checkout.getItems().stream()
+                    .map(item -> new CartItemDTO(
+                            item.getBookId(),
+                            item.getQuantity(),
+                            item.getTitle(),
+                            item.getAuthor(),
+                            item.getIsbn(),
+                            item.getPurchasePrice()
+                    ))
+                    .collect(Collectors.toList());
+
+            purchaseHistory.add(new PurchaseDTO(
+                    checkout.getId(),
+                    checkout.getPurchaseDate(),
+                    items
+            ));
+        }
 
         return ResponseEntity.ok(purchaseHistory);
-    }
-
-    /**
-     * Placeholder for recommendations endpoint.
-     *
-     * @param userId The ID of the user requesting recommendations.
-     * @return A list of recommended books.
-     */
-    @GetMapping("/recommendations")
-    public ResponseEntity<List<Book>> getRecommendations(@RequestParam Long userId) {
-        // Implement recommendation logic here
-        return ResponseEntity.ok(new ArrayList<>()); // Placeholder
     }
 }
