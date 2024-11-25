@@ -22,14 +22,14 @@ jobs:
       - name: Build with Maven
         run: mvn clean install
 
-      - name: List files in workspace
+      - name: List files in workspace after Maven build
         run: dir
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: 'SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar'
+          path: 'target/SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar'
 
   deploy:
     runs-on: windows-latest
@@ -44,7 +44,7 @@ jobs:
         with:
           name: java-app
 
-      - name: List files after download
+      - name: List files after downloading artifact
         run: dir
 
       - name: Deploy to Azure Web App
