@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: windows-latest
@@ -17,25 +21,22 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
+          distribution: 'microsoft'
 
       - name: Build with Maven
         run: mvn clean install
-
-      - name: List files in workspace after Maven build
-        run: dir
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: 'target/SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar'
 
   deploy:
     runs-on: windows-latest
     needs: build
     environment:
       name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
       - name: Download artifact from build job
@@ -43,14 +44,17 @@ jobs:
         with:
           name: java-app
 
-      - name: List files after downloading artifact
-        run: dir
-
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+      - name: Azure login
+        uses: azure/login@v2
         with:
-          app-name: 'BookStore-Application'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: '*.jar'
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: Deploy to Azure Web App using zipDeploy
+        run: |
+          echo "Creating ZIP file for deployment..."
+          Compress-Archive -Path 'SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar' -DestinationPath 'deployment.zip'
+          echo "Deploying to Azure Web App..."
+          az webapp deploy --resource-group BookStore-Resource --name BookStore-Application --src-path deployment.zip --type zip
