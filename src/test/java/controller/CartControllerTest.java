@@ -1,71 +1,203 @@
 package controller;
 
-import com.bookstore.BookStoreApplication;
+import com.bookstore.controller.CartController;
+import com.bookstore.model.Book;
 import com.bookstore.model.Cart;
 import com.bookstore.model.CartItem;
-import com.bookstore.model.Book;
-import com.bookstore.repository.BookRepository;
+import com.bookstore.model.User;
 import com.bookstore.repository.CartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import java.util.ArrayList;
+import java.util.Optional;
 
-@SpringBootTest(classes = BookStoreApplication.class)
-@AutoConfigureMockMvc
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class CartControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
+    @Mock
     private CartRepository cartRepository;
 
-    @Autowired
-    private BookRepository bookRepository;
+    @InjectMocks
+    private CartController cartController;
 
-    private Long userId;
+    private Cart cart;
     private CartItem cartItem;
+    private Book book;
+    private User user;
+    private AutoCloseable autoCloseable;
 
     @BeforeEach
-    public void setUp() {
-        cartRepository.deleteAll();
+    void setUp() {
+        autoCloseable = MockitoAnnotations.openMocks(this);
 
-        Book book = new Book(
-                "Test ISBN",
-                "Test Title",
-                "Test Description",
-                "Test Author",
-                "Test Publisher",
-                "http://example.com/test.jpg",
-                10.00,
-                5
-        );
-        book = bookRepository.save(book);
+        user = new User();
+        user.setId(1L);
+        user.setUsername("testUser");
 
-        Cart cart = new Cart();
-        cartRepository.save(cart);
-        userId = cart.getId();
+        book = new Book();
+        book.setId(1);
+        book.setTitle("Test Book");
+        book.setPrice(29.99);
 
-        cartItem = new CartItem(book, 1, cart);
+        cartItem = new CartItem();
+        cartItem.setId(1L);
+        cartItem.setBook(book);
+        cartItem.setQuantity(2);
+
+        cart = new Cart();
+        cart.setId(1L);
+        cart.setUser(user);
+        cart.setItems(new ArrayList<>());
     }
 
     @Test
-    public void addToCart() throws Exception {
-        String cartItemJson = "{ \"book\": { \"id\": " + cartItem.getBook().getId() + " }, \"quantity\": 1 }";
+    void tearDown() throws Exception {
+        if (autoCloseable != null) {
+            autoCloseable.close();
+        }
+    }
 
-        mockMvc.perform(post("/api/cart/add")
-                        .param("userId", userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(cartItemJson))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Item successfully added to cart"));
+    /**
+     * Tests adding an item to an existing cart successfully
+     */
+    @Test
+    void testAddToExistingCart() {
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+
+        ResponseEntity<?> response = cartController.addToCart(cartItem, 1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Item successfully added to cart", response.getBody());
+    }
+
+    /**
+     * Tests adding an item when the cart doesn't exist yet
+     */
+    @Test
+    void testAddToNewCart() {
+        when(cartRepository.findById(1L)).thenReturn(Optional.empty());
+        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+
+        ResponseEntity<?> response = cartController.addToCart(cartItem, 1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(cartRepository).save(any(Cart.class));
+    }
+
+    /**
+     * Tests error handling when trying to add a null item to cart
+     */
+    @Test
+    void testAddNullItem() {
+        ResponseEntity<?> response = cartController.addToCart(null, 1L);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Cart item and user ID cannot be null", response.getBody());
+    }
+
+    /**
+     * Tests error handling when database save operation fails
+     */
+    @Test
+    void testAddWithDatabaseError() {
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(cartRepository.save(any(Cart.class))).thenThrow(new RuntimeException("Database error"));
+
+        ResponseEntity<?> response = cartController.addToCart(cartItem, 1L);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    /**
+     * Tests removing an item from cart successfully
+     */
+    @Test
+    void testRemoveFromCart() {
+        cart.getItems().add(cartItem);
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+
+        ResponseEntity<?> response = cartController.removeFromCart(cartItem, 1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Item successfully removed from cart", response.getBody());
+    }
+
+    /**
+     * Tests removing an item that doesn't exist in the cart
+     */
+    @Test
+    void testRemoveNonexistentItem() {
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+
+        ResponseEntity<?> response = cartController.removeFromCart(cartItem, 1L);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    /**
+     * Tests error handling when trying to remove from cart with null user ID
+     */
+    @Test
+    void testRemoveWithNullUserId() {
+        ResponseEntity<?> response = cartController.removeFromCart(cartItem, null);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Cart item and user ID cannot be null", response.getBody());
+    }
+
+    /**
+     * Tests clearing all items from cart successfully
+     */
+    @Test
+    void testClearCart() {
+        cart.getItems().add(cartItem);
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+
+        ResponseEntity<?> response = cartController.clearCart(1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(cart.getItems().isEmpty());
+    }
+
+    /**
+     * Tests clearing a cart that doesn't exist yet
+     */
+    @Test
+    void testClearNonexistentCart() {
+        when(cartRepository.findById(1L)).thenReturn(Optional.empty());
+        when(cartRepository.save(any(Cart.class))).thenReturn(new Cart());
+
+        ResponseEntity<?> response = cartController.clearCart(1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(cartRepository).save(any(Cart.class));
+    }
+
+    /**
+     * Tests error handling when clearing cart fails due to database error
+     */
+    @Test
+    void testClearWithDatabaseError() {
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        when(cartRepository.save(any(Cart.class))).thenThrow(new RuntimeException("Database error"));
+
+        ResponseEntity<?> response = cartController.clearCart(1L);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(((String)response.getBody()).contains("Failed to clear cart"));
     }
 }
