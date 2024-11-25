@@ -44,7 +44,7 @@ jobs:
         with:
           name: java-app
 
-      - name: List files in workspace after download
+      - name: List files after download
         run: dir
 
       - name: Deploy to Azure Web App
