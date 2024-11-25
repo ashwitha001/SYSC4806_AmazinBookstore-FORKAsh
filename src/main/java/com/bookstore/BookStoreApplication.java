@@ -37,7 +37,6 @@ public class BookStoreApplication {
     @Bean
     public CommandLineRunner initializeUsers() {
         return args -> {
-            //userRepository.deleteAll();  //may need to uncomment this on first run to allow creation of users
             if (userRepository.count() == 0) {
                 log.info("Initializing default users...");
 

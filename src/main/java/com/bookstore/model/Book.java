@@ -21,7 +21,6 @@ public class Book {
     private double price;
     private int inventory; // Available stock
 
-    // Default JPA Constructor
     public Book() {}
 
     /**
@@ -43,8 +42,8 @@ public class Book {
         this.author = author;
         this.publisher = publisher;
         this.pictureURL = pictureURL;
-        setPrice(price); // Use setter to enforce validation
-        setInventory(inventory); // Use setter to enforce validation
+        setPrice(price);
+        setInventory(inventory);
     }
 
     /**

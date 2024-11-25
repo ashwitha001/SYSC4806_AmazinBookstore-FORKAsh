@@ -142,16 +142,4 @@ public class PurchaseController {
 
         return ResponseEntity.ok(purchaseHistory);
     }
-
-    /**
-     * Placeholder for recommendations endpoint.
-     *
-     * @param userId The ID of the user requesting recommendations.
-     * @return A list of recommended books.
-     */
-    @GetMapping("/recommendations")
-    public ResponseEntity<List<Book>> getRecommendations(@RequestParam Long userId) {
-        // Implement recommendation logic here
-        return ResponseEntity.ok(new ArrayList<>()); // Placeholder
-    }
 }

@@ -195,24 +195,23 @@ public class BookController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Get current user's purchased books
         Set<Long> userBooks = getUserPurchasedBooks(user);
 
         if (userBooks.isEmpty()) {
             return ResponseEntity.ok(new ArrayList<>());
         }
 
-        // Get all users and their purchased books
+        // get all users and their purchased books
         Map<Long, Set<Long>> userPurchaseMap = getAllUserPurchases();
 
-        // Find most similar user using Jaccard similarity
+        // find most similar user using Jaccard similarity
         Long mostSimilarUserId = findMostSimilarUser(user.getId(), userBooks, userPurchaseMap);
 
         if (mostSimilarUserId == null) {
             return ResponseEntity.ok(new ArrayList<>());
         }
 
-        // Get recommendations based on most similar user's purchases
+        // get recommended books for the current user
         List<Book> recommendations = getRecommendedBooksForUser(userBooks, userPurchaseMap.get(mostSimilarUserId));
 
         return ResponseEntity.ok(recommendations);
@@ -239,6 +238,9 @@ public class BookController {
         return purchaseMap;
     }
 
+    /**
+     * Finds the most similar user to the current user based on Jaccard similarity of purchase history.
+     */
     private Long findMostSimilarUser(Long currentUserId, Set<Long> userBooks,
                                      Map<Long, Set<Long>> userPurchaseMap) {
         double maxSimilarity = 0.0;
@@ -257,6 +259,9 @@ public class BookController {
         return mostSimilarUserId;
     }
 
+    /**
+     * Calculates the Jaccard similarity between two sets.
+     */
     private double calculateJaccardSimilarity(Set<Long> set1, Set<Long> set2) {
         if (set1.isEmpty() && set2.isEmpty()) {
             return 0.0;
@@ -271,8 +276,10 @@ public class BookController {
         return (double) intersection.size() / union.size();
     }
 
+    /**
+     * Gets the recommended books for the current user based on the most similar user's purchase history.
+     */
     private List<Book> getRecommendedBooksForUser(Set<Long> userBooks, Set<Long> similarUserBooks) {
-        // Get books that similar user has but current user doesn't
         Set<Long> recommendedBookIds = new HashSet<>(similarUserBooks);
         recommendedBookIds.removeAll(userBooks);
 

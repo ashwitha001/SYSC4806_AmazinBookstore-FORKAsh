@@ -64,7 +64,7 @@ public class UserController {
 
         User user = optionalUser.get();
 
-        // Update only non-null fields
+        // update only non-null fields
         if (userDetails.getUsername() != null) {
             user.setUsername(userDetails.getUsername());
         }
@@ -78,7 +78,6 @@ public class UserController {
             user.setLastName(userDetails.getLastName());
         }
         if (userDetails.getPassword() != null) {
-            // Consider adding password hashing here if not handled elsewhere
             user.setPassword(userDetails.getPassword());
         }
         if (userDetails.getRole() != null) {

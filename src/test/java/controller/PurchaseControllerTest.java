@@ -190,15 +190,4 @@ public class PurchaseControllerTest {
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
-
-    /**
-     * Tests getting recommendations (placeholder test as implementation is empty)
-     */
-    @Test
-    void testGetRecommendations() {
-        ResponseEntity<List<Book>> response = purchaseController.getRecommendations(1L);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().isEmpty());
-    }
 }
