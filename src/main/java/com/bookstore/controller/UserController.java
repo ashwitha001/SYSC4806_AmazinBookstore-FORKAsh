@@ -61,11 +61,36 @@ public class UserController {
         if (optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
         User user = optionalUser.get();
-        user.setUsername(userDetails.getUsername());
-        user.setRole(userDetails.getRole());
-        User updatedUser = userRepository.save(user);
-        return ResponseEntity.ok(updatedUser);
+
+        // update only non-null fields
+        if (userDetails.getUsername() != null) {
+            user.setUsername(userDetails.getUsername());
+        }
+        if (userDetails.getEmail() != null) {
+            user.setEmail(userDetails.getEmail());
+        }
+        if (userDetails.getFirstName() != null) {
+            user.setFirstName(userDetails.getFirstName());
+        }
+        if (userDetails.getLastName() != null) {
+            user.setLastName(userDetails.getLastName());
+        }
+        if (userDetails.getPassword() != null) {
+            user.setPassword(userDetails.getPassword());
+        }
+        if (userDetails.getRole() != null) {
+            user.setRole(userDetails.getRole());
+        }
+
+        try {
+            User updatedUser = userRepository.save(user);
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body("Failed to update user: " + e.getMessage());
+        }
     }
 
     /**

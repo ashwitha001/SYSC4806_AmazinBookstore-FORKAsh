@@ -1,106 +1,216 @@
 package controller;
 
-import com.bookstore.BookStoreApplication;
+import com.bookstore.controller.UserController;
 import com.bookstore.model.Role;
 import com.bookstore.model.User;
 import com.bookstore.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@SpringBootTest(classes = BookStoreApplication.class)
-@AutoConfigureMockMvc
 public class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
+    @Mock
     private UserRepository userRepository;
 
-    private User customerUser;
+    @InjectMocks
+    private UserController userController;
+
+    private User user1;
+    private User user2;
+    private AutoCloseable autoCloseable;
 
     @BeforeEach
-    public void setUp() {
-        userRepository.deleteAll();
+    void setUp() {
+        autoCloseable = MockitoAnnotations.openMocks(this);
 
-        customerUser = new User("customerUser", Role.CUSTOMER);
-        userRepository.save(customerUser);
+        user1 = new User();
+        user1.setId(1L);
+        user1.setUsername("user1");
+        user1.setEmail("user1@example.com");
+        user1.setRole(Role.CUSTOMER);
+
+        user2 = new User();
+        user2.setId(2L);
+        user2.setUsername("user2");
+        user2.setEmail("user2@example.com");
+        user2.setRole(Role.ADMIN);
     }
 
     @Test
-    public void getAllUsers() throws Exception {
-        mockMvc.perform(get("/api/users"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].username").value(customerUser.getUsername()));
+    void tearDown() throws Exception {
+        if (autoCloseable != null) {
+            autoCloseable.close();
+        }
     }
 
+    /**
+     * Tests retrieving all users
+     */
     @Test
-    public void createUser() throws Exception {
-        String newUser = "{\"username\":\"newUser\", \"role\":\"admin\"}";
+    void testGetAllUsers() {
+        List<User> users = Arrays.asList(user1, user2);
+        when(userRepository.findAll()).thenReturn(users);
 
-        mockMvc.perform(post("/api/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(newUser))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("newUser"))
-                .andExpect(jsonPath("$.role").value("admin"));
+        List<User> result = userController.getAllUsers();
+
+        assertEquals(2, result.size());
+        assertEquals("user1", result.get(0).getUsername());
+        assertEquals("user2", result.get(1).getUsername());
     }
 
+    /**
+     * Tests creating a new user successfully
+     */
     @Test
-    public void getUserById() throws Exception {
-        mockMvc.perform(get("/api/users/" + customerUser.getId()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value(customerUser.getUsername()));
+    void testCreateUser() {
+        when(userRepository.save(any(User.class))).thenReturn(user1);
+
+        User result = userController.createUser(user1);
+
+        assertNotNull(result);
+        assertEquals(user1.getUsername(), result.getUsername());
+        verify(userRepository).save(user1);
     }
 
+    /**
+     * Tests retrieving an existing user by ID
+     */
     @Test
-    public void getUserById_isNotFound() throws Exception {
-        mockMvc.perform(get("/api/users/999"))
-                .andExpect(status().isNotFound());
+    void testGetExistingUser() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
+
+        ResponseEntity<User> response = userController.getUserById(1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(user1.getUsername(), response.getBody().getUsername());
     }
 
+    /**
+     * Tests retrieving a non-existent user by ID
+     */
     @Test
-    public void updateUser() throws Exception {
-        String newUser = "{\"username\":\"updatedUser\", \"role\":\"admin\"}";
+    void testGetNonexistentUser() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(put("/api/users/" + customerUser.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(newUser))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("updatedUser"))
-                .andExpect(jsonPath("$.role").value("admin"));
+        ResponseEntity<User> response = userController.getUserById(999L);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
+    /**
+     * Tests updating an existing user successfully
+     */
     @Test
-    public void updateUser_isNotFound() throws Exception {
-        String newUser = "{\"username\":\"nonExistentUser\", \"role\":\"customer\"}";
+    void testUpdateExistingUser() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
+        when(userRepository.save(any(User.class))).thenReturn(user1);
 
-        mockMvc.perform(put("/api/users/999")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(newUser))
-                .andExpect(status().isNotFound());
+        User updatedUser = new User();
+        updatedUser.setUsername("updatedUsername");
+        updatedUser.setRole(Role.ADMIN);
+
+        ResponseEntity<?> response = userController.updateUser(1L, updatedUser);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        User resultUser = (User) response.getBody();
+        assertEquals("updatedUsername", resultUser.getUsername());
+        assertEquals(Role.ADMIN, resultUser.getRole());
     }
 
+    /**
+     * Tests updating a non-existent user
+     */
     @Test
-    public void deleteUser() throws Exception {
-        mockMvc.perform(delete("/api/users/" + customerUser.getId()))
-                .andExpect(status().isOk());
+    void testUpdateNonexistentUser() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/users/" + customerUser.getId()))
-                .andExpect(status().isNotFound());
+        ResponseEntity<?> response = userController.updateUser(999L, user1);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
+    /**
+     * Tests deleting an existing user successfully
+     */
     @Test
-    public void deleteUser_isNotFound() throws Exception {
-        mockMvc.perform(delete("/api/users/999"))
-                .andExpect(status().isNotFound());
+    void testDeleteExistingUser() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
+
+        ResponseEntity<?> response = userController.deleteUser(1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(userRepository).delete(user1);
+    }
+
+    /**
+     * Tests deleting a non-existent user
+     */
+    @Test
+    void testDeleteNonexistentUser() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        ResponseEntity<?> response = userController.deleteUser(999L);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    /**
+     * Tests creating user with null values
+     */
+    @Test
+    void testCreateNullUser() {
+        when(userRepository.save(any(User.class))).thenReturn(new User());
+
+        User result = userController.createUser(new User());
+
+        assertNotNull(result);
+        verify(userRepository).save(any(User.class));
+    }
+
+    /**
+     * Tests updating user with null values
+     */
+    @Test
+    void testUpdateUserWithNullValues() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
+        when(userRepository.save(any(User.class))).thenReturn(user1);
+
+        User emptyUser = new User();
+        ResponseEntity<?> response = userController.updateUser(1L, emptyUser);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(userRepository).save(any(User.class));
+    }
+
+    /**
+     * Tests creating user with database error
+     */
+    @Test
+    void testCreateUserDatabaseError() {
+        when(userRepository.save(any(User.class))).thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(RuntimeException.class, () -> userController.createUser(user1));
+    }
+
+    /**
+     * Tests updating user with database error
+     */
+    @Test
+    void testUpdateUserDatabaseError() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
+        when(userRepository.save(any(User.class))).thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(RuntimeException.class, () -> userController.updateUser(1L, user1));
     }
 }
