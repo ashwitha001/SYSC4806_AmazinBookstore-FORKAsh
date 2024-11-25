@@ -36,8 +36,7 @@ jobs:
     needs: build
     environment:
       name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -47,10 +46,11 @@ jobs:
       - name: List files after downloading artifact
         run: dir
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'BookStore-Application'
-          package: 'SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+      - name: Deploy to Azure Web App using zipDeploy
+        run: |
+          echo "Creating ZIP file for deployment..."
+          Compress-Archive -Path 'SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar' -DestinationPath 'deployment.zip'
+          echo "Deploying to Azure Web App..."
+          az webapp deploy --resource-group BookStore-Resource --name BookStore-Application --src-path deployment.zip --type zip
+        env:
+          AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
