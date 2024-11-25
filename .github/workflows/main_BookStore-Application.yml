@@ -22,14 +22,14 @@ jobs:
       - name: Build with Maven
         run: mvn clean install
 
-      - name: List files in target directory
-        run: dir target
+      - name: List files in workspace
+        run: dir
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: 'target/*.jar'
+          path: 'SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar'
 
   deploy:
     runs-on: windows-latest
@@ -43,20 +43,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: java-app
-      
-      - name: List all files in root directory
+
+      - name: List files in workspace after download
         run: dir
-  
-      - name: Extract artifact
-        run: Expand-Archive -Path java-app.zip -DestinationPath java-app
-  
-      - name: List extracted files
-        run: dir java-app
-  
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'BookStore-Application'
-          package: 'java-app/*.jar'
+          package: 'SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
