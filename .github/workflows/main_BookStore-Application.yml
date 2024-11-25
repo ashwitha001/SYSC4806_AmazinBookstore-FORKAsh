@@ -44,7 +44,10 @@ jobs:
         with:
           name: java-app
 
-      - name: List downloaded files
+      - name: Extract artifact
+        run: Expand-Archive -Path java-app.zip -DestinationPath java-app
+
+      - name: List extracted files
         run: dir java-app
 
       - name: Deploy to Azure Web App
