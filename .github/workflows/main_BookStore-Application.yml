@@ -14,10 +14,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Java version
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v1
         with:
           java-version: '17'
-          distribution: 'microsoft'
 
       - name: Build with Maven
         run: mvn clean install
@@ -26,16 +25,17 @@ jobs:
         run: dir
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: java-app
-          path: 'target/SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar'
+          path: '${{ github.workspace }}/target/*.jar'
 
   deploy:
     runs-on: windows-latest
     needs: build
     environment:
       name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
       - name: Download artifact from build job
@@ -46,11 +46,11 @@ jobs:
       - name: List files after downloading artifact
         run: dir
 
-      - name: Deploy to Azure Web App using zipDeploy
-        run: |
-          echo "Creating ZIP file for deployment..."
-          Compress-Archive -Path 'SYSC4806_AmazinBookstore-1.0-SNAPSHOT.jar' -DestinationPath 'deployment.zip'
-          echo "Deploying to Azure Web App..."
-          az webapp deploy --resource-group BookStore-Resource --name BookStore-Application --src-path deployment.zip --type zip
-        env:
-          AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'BookStore-Application'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: '*.jar'
