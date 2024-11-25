@@ -15,13 +15,13 @@ This project uses GitHub Projects to manage tasks. The current Kanban board is d
 
 - **In Progress**:
   - Create and connect prod database
-  - Add signup and login feature with authentication
-  - Develop more test cases (test APIs)
-  - Initialize default customer and default admin users
   - Deploy to Azure (dev, staging, prod)
-  - UML class and sequence diagrams
 
 - **Completed**:
+  - Initialize default customer and default admin users
+  - Add signup and login feature with authentication
+  - Develop more test cases (test APIs)
+  - UML class and sequence diagrams
   - Build Book, Cart and CartItem models
   - Build Checkout and PurchaseItem models
   - Build User and Role models
