@@ -19,6 +19,7 @@ function setupMainEventListeners() {
     if (!hasRole('admin')) {
         document.getElementById('viewCartBtn')?.addEventListener('click', viewCart);
         document.getElementById('viewHistoryBtn')?.addEventListener('click', viewPurchaseHistory);
+        document.getElementById('recommendedBtn')?.addEventListener('click', showRecommendedBooks);
     }
 }
 
@@ -31,6 +32,18 @@ function updateRoleBasedUI() {
 
     if (customerActions) {
         customerActions.style.display = isCustomer ? 'flex' : 'none';
+        // Add recommended button if it doesn't exist
+        if (isCustomer && !document.getElementById('recommendedBtn')) {
+            const recommendedBtn = document.createElement('button');
+            recommendedBtn.id = 'recommendedBtn';
+            recommendedBtn.className = 'nav-button';
+            recommendedBtn.innerHTML = `
+                <i class="fas fa-star"></i>
+                Recommended
+            `;
+            recommendedBtn.addEventListener('click', showRecommendedBooks);
+            customerActions.appendChild(recommendedBtn);
+        }
     }
 }
 
@@ -423,6 +436,87 @@ function showHome() {
     } else {
         loadBooks();
     }
+}
+
+/**
+ * Fetches and displays recommended books for the current user
+ */
+function showRecommendedBooks() {
+    const token = getAuthToken();
+    if (!token) {
+        alert('Please log in to see recommendations.');
+        return;
+    }
+
+    const content = document.getElementById('content');
+    content.innerHTML = '<div class="loading">Loading recommendations...</div>';
+
+    fetch(`${apiUrl}/books/recommended`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch recommendations');
+            }
+            return response.json();
+        })
+        .then(books => {
+            content.innerHTML = '<h2>Recommended Books for You</h2>';
+
+            if (!books || books.length === 0) {
+                content.innerHTML += `
+                <div class="no-recommendations">
+                    <p>No recommendations available yet. Try purchasing more books to get personalized recommendations!</p>
+                    <button onclick="showHome()" class="return-home">Browse Books</button>
+                </div>
+            `;
+                return;
+            }
+
+            const booksContainer = document.createElement('div');
+            booksContainer.className = 'books-container';
+
+            books.forEach(book => {
+                const bookDiv = document.createElement('div');
+                bookDiv.className = 'book';
+
+                const author = book.author || 'Unknown Author';
+                const price = book.price !== undefined ? `$${book.price.toFixed(2)}` : 'Price not available';
+                const inventoryText = book.inventory > 0 ? `In Stock: ${book.inventory}` : 'Out of Stock';
+
+                bookDiv.innerHTML = `
+                <h2>${book.title}</h2>
+                <p><strong>Author:</strong> ${author}</p>
+                <p>${book.description || 'No description available'}</p>
+                <p><strong>Price:</strong> ${price}</p>
+                <p><strong>Stock:</strong> ${inventoryText}</p>
+                ${book.inventory > 0 ?
+                    `<button class="addToCartBtn" data-id="${book.id}">Add to Cart</button>` :
+                    '<button disabled>Out of Stock</button>'}
+            `;
+
+                booksContainer.appendChild(bookDiv);
+            });
+
+            content.appendChild(booksContainer);
+
+            // Add event listeners to new Add to Cart buttons
+            document.querySelectorAll('.addToCartBtn').forEach(button => {
+                button.addEventListener('click', addToCart);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching recommendations:', error);
+            content.innerHTML = `
+            <div class="error-message">
+                <h2>Recommended Books</h2>
+                <p>Sorry, we couldn't load your recommendations. Please try again later.</p>
+                <button onclick="showHome()" class="return-home">Return to Home</button>
+            </div>
+        `;
+        });
 }
 
 /**

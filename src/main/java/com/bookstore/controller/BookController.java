@@ -1,19 +1,24 @@
 package com.bookstore.controller;
 
 import com.bookstore.model.Book;
+import com.bookstore.model.PurchaseItem;
 import com.bookstore.model.Role;
 import com.bookstore.model.User;
 import com.bookstore.repository.BookRepository;
+import com.bookstore.repository.CheckoutRepository;
 import com.bookstore.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.security.Principal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Controller for managing books and handling book-related operations in the bookstore.
@@ -27,6 +32,9 @@ public class BookController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CheckoutRepository checkoutRepository;
 
     /**
      * Retrieves all books from the database.
@@ -178,6 +186,101 @@ public class BookController {
     }
 
     /**
+     * Returns recommended books for a user based on Jaccard similarity of purchase history
+     */
+    @GetMapping("/recommended")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<Book>> getRecommendedBooks(Principal principal) {
+        String username = principal.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Get current user's purchased books
+        Set<Long> userBooks = getUserPurchasedBooks(user);
+
+        if (userBooks.isEmpty()) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+
+        // Get all users and their purchased books
+        Map<Long, Set<Long>> userPurchaseMap = getAllUserPurchases();
+
+        // Find most similar user using Jaccard similarity
+        Long mostSimilarUserId = findMostSimilarUser(user.getId(), userBooks, userPurchaseMap);
+
+        if (mostSimilarUserId == null) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+
+        // Get recommendations based on most similar user's purchases
+        List<Book> recommendations = getRecommendedBooksForUser(userBooks, userPurchaseMap.get(mostSimilarUserId));
+
+        return ResponseEntity.ok(recommendations);
+    }
+
+    private Set<Long> getUserPurchasedBooks(User user) {
+        return checkoutRepository.findByUser(user).stream()
+                .flatMap(checkout -> checkout.getItems().stream())
+                .map(PurchaseItem::getBookId) // get book IDs
+                .collect(Collectors.toSet());
+    }
+
+    private Map<Long, Set<Long>> getAllUserPurchases() {
+        Map<Long, Set<Long>> purchaseMap = new HashMap<>();
+
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            Set<Long> userBooks = getUserPurchasedBooks(user);
+            if (!userBooks.isEmpty()) {
+                purchaseMap.put(user.getId(), userBooks);
+            }
+        }
+
+        return purchaseMap;
+    }
+
+    private Long findMostSimilarUser(Long currentUserId, Set<Long> userBooks,
+                                     Map<Long, Set<Long>> userPurchaseMap) {
+        double maxSimilarity = 0.0;
+        Long mostSimilarUserId = null;
+
+        for (Map.Entry<Long, Set<Long>> entry : userPurchaseMap.entrySet()) {
+            if (!entry.getKey().equals(currentUserId)) {
+                double similarity = calculateJaccardSimilarity(userBooks, entry.getValue());
+                if (similarity > maxSimilarity) {
+                    maxSimilarity = similarity;
+                    mostSimilarUserId = entry.getKey();
+                }
+            }
+        }
+
+        return mostSimilarUserId;
+    }
+
+    private double calculateJaccardSimilarity(Set<Long> set1, Set<Long> set2) {
+        if (set1.isEmpty() && set2.isEmpty()) {
+            return 0.0;
+        }
+
+        Set<Long> intersection = new HashSet<>(set1);
+        intersection.retainAll(set2);
+
+        Set<Long> union = new HashSet<>(set1);
+        union.addAll(set2);
+
+        return (double) intersection.size() / union.size();
+    }
+
+    private List<Book> getRecommendedBooksForUser(Set<Long> userBooks, Set<Long> similarUserBooks) {
+        // Get books that similar user has but current user doesn't
+        Set<Long> recommendedBookIds = new HashSet<>(similarUserBooks);
+        recommendedBookIds.removeAll(userBooks);
+
+        return bookRepository.findAllById(recommendedBookIds);
+    }
+
+
+    /**
      * Checks if the current user has admin role.
      */
     private boolean isAdmin() {
@@ -189,4 +292,6 @@ public class BookController {
 
         return user.getRole() != Role.ADMIN;
     }
+
+
 }
