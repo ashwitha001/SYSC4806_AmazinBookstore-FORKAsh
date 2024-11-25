@@ -505,3 +505,129 @@ hr {
         padding: 20px;
     }
 }
+
+/* ===============================
+   Form & Input Base Styles
+   =============================== */
+input,
+select,
+textarea {
+    font-family: 'Montserrat', sans-serif;
+    font-size: var(--ruler);
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    background-color: var(--color-bg);
+    border: none;
+    border-radius: 12px;
+    color: var(--white);
+    box-shadow: inset 2px 2px 5px var(--color-shadow),
+    inset -5px -5px 10px var(--color-light);
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    box-shadow: inset 4px 4px 8px var(--color-shadow),
+    inset -8px -8px 16px var(--color-light);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--white);
+    opacity: 0.5;
+}
+
+/* Disabled input styles */
+input:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    box-shadow: inset 1px 1px 2px var(--color-shadow),
+    inset -2px -2px 4px var(--color-light);
+}
+
+/* Select dropdown styles */
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+select:invalid {
+    color: var(--white);
+    opacity: 0.5;
+}
+
+/* Checkbox and Radio button styles */
+input[type="checkbox"],
+input[type="radio"] {
+    width: auto;
+    margin-right: 10px;
+    box-shadow: none;
+}
+
+/* Modal form styles */
+.modal-content input {
+    background-color: var(--color-bg);
+    margin: 10px 0;
+    width: 100%;
+}
+
+/* Search input specific styles */
+#searchContainer input,
+#searchContainer select {
+    margin: 5px;
+    max-width: 200px;
+}
+
+/* Form group spacing */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--white);
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+/* Edit profile form specific styles */
+.edit-profile-container input {
+    margin: 8px 0 16px 0;
+}
+
+/* ===============================
+   Login/Register Form Styles
+   =============================== */
+.auth-form input {
+    margin-bottom: 15px;
+}
+
+/* Remove browser autofill background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--color-bg) inset !important;
+    -webkit-text-fill-color: var(--white) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Error state for inputs */
+input.error {
+    box-shadow: inset 2px 2px 5px rgba(255, 0, 0, 0.2),
+    inset -5px -5px 10px var(--color-light);
+}
+
+/* Success state for inputs */
+input.success {
+    box-shadow: inset 2px 2px 5px rgba(0, 255, 0, 0.1),
+    inset -5px -5px 10px var(--color-light);
+}

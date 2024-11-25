@@ -61,6 +61,7 @@ public class JWTService {
         Optional<User> user = userRepository.findByUsername(username);
         if(user.isPresent()) {
             claims.put("role", user.get().getRole());
+            claims.put("userId", user.get().getId());
         } else {
             claims.put("role", Role.CUSTOMER); //default
         }

@@ -32,7 +32,6 @@ function updateRoleBasedUI() {
 
     if (customerActions) {
         customerActions.style.display = isCustomer ? 'flex' : 'none';
-        // Add recommended button if it doesn't exist
         if (isCustomer && !document.getElementById('recommendedBtn')) {
             const recommendedBtn = document.createElement('button');
             recommendedBtn.id = 'recommendedBtn';
@@ -307,15 +306,16 @@ function showEditProfileModal() {
 function handleProfileUpdate(event) {
     event.preventDefault();
     const token = getAuthToken();
-    if (!token) {
+    const user = getCurrentUser();
+    if (!token || !user) {
         alert('You must be logged in to update your profile.');
         return;
     }
 
     const formData = {
-        email: document.getElementById('profileEmail').value,
-        firstName: document.getElementById('profileFirstName').value,
-        lastName: document.getElementById('profileLastName').value,
+        email: document.getElementById('profileEmail').value.trim(),
+        firstName: document.getElementById('profileFirstName').value.trim(),
+        lastName: document.getElementById('profileLastName').value.trim(),
         password: document.getElementById('profilePassword').value
     };
 
@@ -323,7 +323,7 @@ function handleProfileUpdate(event) {
         delete formData.password;
     }
 
-    fetch(`${apiUrl}/auth/profile`, {
+    fetch(`${apiUrl}/users/${user.userId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -395,7 +395,11 @@ function getCurrentUser() {
     try {
         const payload = token.split('.')[1];
         const decoded = JSON.parse(atob(payload));
-        return decoded;
+        return {
+            sub: decoded.sub,
+            role: decoded.role,
+            userId: decoded.userId
+        };
     } catch (error) {
         console.error('Error decoding token:', error);
         return null;
@@ -502,7 +506,6 @@ function showRecommendedBooks() {
 
             content.appendChild(booksContainer);
 
-            // Add event listeners to new Add to Cart buttons
             document.querySelectorAll('.addToCartBtn').forEach(button => {
                 button.addEventListener('click', addToCart);
             });
