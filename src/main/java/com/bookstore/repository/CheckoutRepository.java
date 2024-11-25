@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface CheckoutRepository extends JpaRepository<Checkout, Long>{
     List<Checkout> findByUser(User user);
+
 }

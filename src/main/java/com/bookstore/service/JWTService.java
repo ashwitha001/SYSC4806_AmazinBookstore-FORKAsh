@@ -58,7 +58,7 @@ public class JWTService {
      */
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
-        Optional<User> user = userRepository.findByUsernameIgnoreCase(username);
+        Optional<User> user = userRepository.findByUsername(username);
         if(user.isPresent()) {
             claims.put("role", user.get().getRole());
         } else {
@@ -70,7 +70,7 @@ public class JWTService {
                 .add(claims)
                 .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 30))
+                .expiration(new Date(System.currentTimeMillis() + 60 * 60 * 1000 * 24)) // 24 hours
                 .and()
                 .signWith(getKey())
                 .compact();

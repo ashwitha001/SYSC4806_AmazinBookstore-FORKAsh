@@ -36,6 +36,50 @@ input::placeholder {
 }
 
 /* ===============================
+   Auth Welcome Screen
+   =============================== */
+#authContent {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--color-bg);
+}
+
+.auth-welcome {
+    background-color: var(--color-bg);
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 6px 6px 12px var(--color-shadow),
+    -6px -6px 12px var(--color-light);
+}
+
+.auth-welcome h1 {
+    margin-bottom: 20px;
+    color: var(--white);
+    font-size: 2.5em;
+}
+
+.auth-welcome p {
+    color: var(--white);
+    margin-bottom: 30px;
+    font-size: 1.2em;
+}
+
+.welcome-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.welcome-buttons button {
+    padding: 15px 30px;
+    font-size: 1.1em;
+    min-width: 120px;
+}
+
+/* ===============================
    Header & Navigation
    =============================== */
 header {
@@ -51,6 +95,110 @@ header {
 #searchContainer {
     display: flex;
     align-items: center;
+}
+
+/* User Menu Styles */
+.user-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.user-menu-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-bg);
+    border: none;
+    cursor: pointer;
+    box-shadow: -2px -2px 5px var(--color-light),
+    2px 2px 5px var(--color-shadow);
+}
+
+.user-menu-btn:hover {
+    box-shadow: -1px -1px 3px var(--color-light),
+    1px 1px 3px var(--color-shadow);
+}
+
+.user-menu-btn:active {
+    box-shadow: inset 1px 1px 2px var(--color-shadow),
+    inset -1px -1px 2px var(--color-light);
+}
+
+.user-initial {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--white);
+    text-transform: uppercase;
+}
+
+.user-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50px;
+    min-width: 200px;
+    background-color: var(--color-bg);
+    border-radius: 12px;
+    box-shadow: 6px 6px 12px var(--color-shadow),
+    -6px -6px 12px var(--color-light);
+    z-index: 1000;
+    padding: 10px 0;
+}
+
+.user-dropdown.show {
+    display: block;
+}
+
+.user-info {
+    padding: 10px 15px;
+    color: var(--white);
+    font-size: 0.9em;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--color-light);
+    margin: 8px 0;
+    opacity: 0.2;
+}
+
+.dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 15px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--white);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    box-shadow: none;
+    margin: 0;
+}
+
+.dropdown-item:hover {
+    background-color: var(--color-light);
+    box-shadow: none;
+}
+
+/* Animation for dropdown */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-dropdown.show {
+    animation: slideDown 0.2s ease-out;
 }
 
 #searchContainer select,
@@ -80,6 +228,11 @@ header {
 /* ===============================
    Main Content
    =============================== */
+#mainContent {
+    min-height: 100vh;
+    background-color: var(--color-bg);
+}
+
 #content {
     padding: 20px;
 }
@@ -168,7 +321,9 @@ button.addToCartBtn {
     box-shadow: inset 1px 1px 2px var(--color-shadow), inset -1px -1px 2px var(--color-light);
 }
 
-/* Modal Background */
+/* ===============================
+   Modal Styles
+   =============================== */
 .modal {
     display: none;
     position: fixed;
@@ -178,29 +333,47 @@ button.addToCartBtn {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
-/* Modal Content */
 .modal-content {
     background-color: var(--color-bg);
     margin: 10% auto;
-    padding: 20px;
-    width: 300px;
+    padding: 30px;
+    width: 400px;
+    max-width: 90%;
     border-radius: 12px;
     box-shadow: 6px 6px 12px var(--color-shadow), -6px -6px 12px var(--color-light);
     color: var(--color-text);
     text-align: center;
 }
 
-/* Placeholder Text Color for Modal Inputs */
-.modal-content form input::placeholder {
-    color: var(--color-bg); /* Set the placeholder text color to white */
+.modal-content input {
+    background-color: var(--color-bg);
+    border: none;
+    margin: 10px 0;
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    color: var(--white);
+    box-shadow: inset 2px 2px 5px var(--color-shadow),
+    inset -5px -5px 10px var(--color-light);
 }
 
-/* Close Button */
+.modal-content input::placeholder {
+    color: var(--white);
+    opacity: 0.7;
+}
+
+.modal-content button {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 1.1em;
+}
+
 .close {
-    color: #aaa;
+    color: var(--white);
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -209,43 +382,8 @@ button.addToCartBtn {
 
 .close:hover,
 .close:focus {
-    color: #000;
+    color: var(--color-light);
     text-decoration: none;
-}
-
-.modal-content h2 {
-    margin-top: 0;
-    color: var(--color-text);
-}
-
-.modal-content form input {
-    width: 90%;
-    padding: 8px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
-.modal-content form button {
-    width: 100%;
-    background-color: #333;
-    color: white;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.modal-content form button:hover {
-    background-color: #555;
-}
-
-button#roleSwitchBtn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
 }
 
 /* ===============================
@@ -298,6 +436,34 @@ hr {
 }
 
 /* ===============================
+   Login Status
+   =============================== */
+#loginStatus {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#statusMessage {
+    color: var(--white);
+}
+
+/* Hide auth buttons in header when showing welcome screen */
+#mainContent .auth-buttons {
+    display: none;
+}
+
+/* Animation */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ===============================
    Media Queries
    =============================== */
 @media (max-width: 768px) {
@@ -308,11 +474,34 @@ hr {
 
     #searchContainer {
         margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    #searchContainer select,
+    #searchContainer input,
+    #searchContainer button {
+        margin: 5px 0;
+        width: 100%;
     }
 
     #customerActions {
         margin-top: 10px;
         width: 100%;
         justify-content: space-between;
+    }
+
+    .auth-welcome {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    .welcome-buttons {
+        flex-direction: column;
+    }
+
+    .modal-content {
+        margin: 10% auto;
+        width: 90%;
+        padding: 20px;
     }
 }

@@ -50,13 +50,13 @@ public class PurchaseControllerTest {
         bookRepository.deleteAll();
         userRepository.deleteAll();
 
-        // Create and save sample user and book
+        // create and save sample user and book
 
-        // Create customer user
+        // create customer user
         RegistrationDTO customer = new RegistrationDTO("customer", "pass", "customer@email.com",
                 "CustomerFirstName", "lastName");
         userService.register(customer, Role.CUSTOMER);
-        customerUser = userRepository.findByUsernameIgnoreCase("customer")
+        customerUser = userRepository.findByUsername("customer")
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
 

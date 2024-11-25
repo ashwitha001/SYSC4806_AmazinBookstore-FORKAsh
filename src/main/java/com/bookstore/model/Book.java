@@ -1,18 +1,16 @@
 package com.bookstore.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import org.hibernate.validator.constraints.UniqueElements;
 
 @Entity
 public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id; // Primary key
+    private int id; // primary key
 
-
+    @Column(unique = true)
     private String isbn;
 
     private String title;
