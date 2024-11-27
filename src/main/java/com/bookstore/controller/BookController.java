@@ -37,7 +37,7 @@ public class BookController {
      * Finds a specific book by its unique identifier.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+    public ResponseEntity<Book> getBookById(@PathVariable String id) {
         return bookRepository.findById(id)
                 .map(book -> ResponseEntity.ok().body(book))
                 .orElse(ResponseEntity.notFound().build());
@@ -104,7 +104,7 @@ public class BookController {
      * Updates an existing book's information (admin access required).
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> editBook(@PathVariable Long id, @RequestBody Book bookDetails, @RequestParam Long userId) {
+    public ResponseEntity<?> editBook(@PathVariable String id, @RequestBody Book bookDetails, @RequestParam Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null || user.getRole() != Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.");
@@ -128,7 +128,7 @@ public class BookController {
      * Removes a book from the inventory (admin access required).
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBook(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<?> deleteBook(@PathVariable String id, @RequestParam Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null || user.getRole() != Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.");

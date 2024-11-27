@@ -18,14 +18,14 @@ public class BookRecommendationService {
      * @param numRecommendations maximum number of recommendations to return
      * @return list of recommended book IDs
      */
-    public List<Long> getRecommendedBooks(User currentUser, List<User> allUsers, int numRecommendations) {
-        Set<Long> currentUserBooks = getUserPurchasedBooks(currentUser);
+    public List<String> getRecommendedBooks(User currentUser, List<User> allUsers, int numRecommendations) {
+        Set<String> currentUserBooks = getUserPurchasedBooks(currentUser);
         
         // Calculate similarity scores with other users
         List<UserSimilarity> similarUsers = new ArrayList<>();
         for (User otherUser : allUsers) {
             if (!otherUser.getId().equals(currentUser.getId())) {
-                Set<Long> otherUserBooks = getUserPurchasedBooks(otherUser);
+                Set<String> otherUserBooks = getUserPurchasedBooks(otherUser);
                 double similarity = calculateJaccardSimilarity(currentUserBooks, otherUserBooks);
                 similarUsers.add(new UserSimilarity(otherUser, similarity));
             }
@@ -34,13 +34,13 @@ public class BookRecommendationService {
         // Sort users by similarity score
         similarUsers.sort((a, b) -> Double.compare(b.similarity(), a.similarity()));
         
-        // Collect books from similar users that current user hasnt purchased
-        Set<Long> recommendations = new HashSet<>();
+        // Collect books from similar users that current user hasn't purchased
+        Set<String> recommendations = new HashSet<>();
         for (UserSimilarity similarUser : similarUsers) {
             if (recommendations.size() >= numRecommendations) {
                 break;
             }
-            Set<Long> similarUserBooks = getUserPurchasedBooks(similarUser.user());
+            Set<String> similarUserBooks = getUserPurchasedBooks(similarUser.user());
             similarUserBooks.removeAll(currentUserBooks); // Remove books current user already has
             recommendations.addAll(similarUserBooks);
         }
@@ -53,13 +53,13 @@ public class BookRecommendationService {
      * Calculates Jaccard similarity between two sets of books.
      * Jaccard similarity = size of intersection / size of union
      */
-    private double calculateJaccardSimilarity(Set<Long> set1, Set<Long> set2) {
+    private double calculateJaccardSimilarity(Set<String> set1, Set<String> set2) {
         if (set1.isEmpty() && set2.isEmpty()) {
             return 0.0;
         }
-        Set<Long> intersection = new HashSet<>(set1);
+        Set<String> intersection = new HashSet<>(set1);
         intersection.retainAll(set2);
-        Set<Long> union = new HashSet<>(set1);
+        Set<String> union = new HashSet<>(set1);
         union.addAll(set2);
         
         return (double) intersection.size() / union.size();
@@ -68,12 +68,12 @@ public class BookRecommendationService {
     /**
      * Gets all book IDs that a user has purchased.
      * @param user
-     * @return set of book ID's
+     * @return set of book ID's (as String)
      */
-    private Set<Long> getUserPurchasedBooks(User user) {
+    private Set<String> getUserPurchasedBooks(User user) {
         return user.getPurchases().stream()
                 .flatMap(checkout -> checkout.getItems().stream())
-                .map(PurchaseItem::getBookId)
+                .map(PurchaseItem::getBookId)  // Assuming getBookId returns String
                 .collect(Collectors.toSet());
     }
     
