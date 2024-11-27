@@ -24,22 +24,18 @@ public class UserTest {
 
         // Initialize admin user
         adminUser = new User("adminUser", Role.ADMIN);
-
     }
 
     @Test
     public void getId() {
-        Long id = 1L;
-        customerUser.setId(id);
-        assertEquals(id, customerUser.getId());
-
+        customerUser.setId("1");
+        assertEquals("1", customerUser.getId());
     }
 
     @Test
     public void setId() {
-        Long id = 2L;
-        customerUser.setId(id);
-        assertEquals(id, customerUser.getId());
+        customerUser.setId("2");
+        assertEquals("2", customerUser.getId());
     }
 
     @Test
@@ -88,5 +84,53 @@ public class UserTest {
         assertEquals(newPurchases, customerUser.getPurchases());
         assertEquals(1, customerUser.getPurchases().size());
         assertEquals(checkout, customerUser.getPurchases().get(0));
+    }
+
+    @Test
+    public void getPassword() {
+        customerUser.setPassword("password123");
+        assertEquals("password123", customerUser.getPassword());
+    }
+
+    @Test
+    public void setPassword() {
+        customerUser.setPassword("newPassword123");
+        assertEquals("newPassword123", customerUser.getPassword());
+    }
+
+    @Test
+    public void getFirstName() {
+        customerUser.setFirstName("John");
+        assertEquals("John", customerUser.getFirstName());
+    }
+
+    @Test
+    public void setFirstName() {
+        customerUser.setFirstName("Jane");
+        assertEquals("Jane", customerUser.getFirstName());
+    }
+
+    @Test
+    public void getLastName() {
+        customerUser.setLastName("Doe");
+        assertEquals("Doe", customerUser.getLastName());
+    }
+
+    @Test
+    public void setLastName() {
+        customerUser.setLastName("Smith");
+        assertEquals("Smith", customerUser.getLastName());
+    }
+
+    @Test
+    public void getEmail() {
+        customerUser.setEmail("customer@example.com");
+        assertEquals("customer@example.com", customerUser.getEmail());
+    }
+
+    @Test
+    public void setEmail() {
+        customerUser.setEmail("admin@example.com");
+        assertEquals("admin@example.com", customerUser.getEmail());
     }
 }
