@@ -46,8 +46,8 @@ This project uses GitHub Projects to manage tasks. The current Kanban board is d
 
 ## Database Schema
 The following is the current schema of the database used in the AmazinBookstore project:
-![Database schema milestone 1.png](Diagrams%2FDatabase%20schema%20milestone%201.png)
+![Database schema milestone 3.png](Diagrams%2FDatabase%20schema%20milestone%201.png)
 
 ## UML Diagram
 The following is the current UML diagram used in the AmazinBookstore project:
-![UML Diagram Miletone 1.png](Diagrams/UML%20Diagram%20Milestone%201.png)
+![UML Diagram Miletone 3.png](Diagrams/UML%20Diagram%20Milestone%201.png)
