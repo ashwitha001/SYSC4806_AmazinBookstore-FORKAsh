@@ -31,7 +31,7 @@ public class CartItemDTO {
      * @param isbn          the ISBN of the book
      * @param purchasePrice the purchase price of the book
      */
-    public CartItemDTO(String bookId, int quantity) {
+    public CartItemDTO(String bookId, int quantity, String title, String author, String isbn, Double purchasePrice) {
         this.bookId = bookId;
         this.quantity = quantity;
         this.title = title;
