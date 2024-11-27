@@ -1,16 +1,13 @@
 package com.bookstore.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.persistence.Id;
 
-@Entity
+@Document(collection = "books")
 public class Book {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id; // Primary key
+    private String id; // Primary key
 
 
     private String isbn;
@@ -190,7 +187,7 @@ public class Book {
      * Gets the ID of this book.
      * @return the ID of this book
      */
-    public int getId() {
+    public String getId() {
         return id;
     }
 
@@ -198,7 +195,7 @@ public class Book {
      * Sets the ID of this book.
      * @param id the new ID for this book
      */
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 }
