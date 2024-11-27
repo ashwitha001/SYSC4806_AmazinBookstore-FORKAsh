@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('viewHistoryBtn').addEventListener('click', viewPurchaseHistory);
 
     // Load initial content based on role
+    updateLoginStatus();
     updateRoleView();
 });
 
@@ -36,7 +37,7 @@ function switchRole() {
 function updateRoleView() {
     const customerActions = document.getElementById('customerActions');
 
-    if (currentUserRole === 'admin') {
+    if (hasRole('admin')) {
         // Hide customer-specific elements
         customerActions.style.display = 'none';
         loadAdminView();
@@ -50,56 +51,91 @@ function updateRoleView() {
 function viewPurchaseHistory() {
     const content = document.getElementById('content');
     content.innerHTML = '<h2>Purchase History</h2>';
+    const token = getAuthToken();
+    if(!token) {
+        alert("You must log in to view your purchase history");
+        return;
+    }
 
-    fetch(`${apiUrl}/users/${currentUserId}`)
-        .then(response => response.json())
-        .then(user => {
-            if (!user.purchases || user.purchases.length === 0) {
-                content.innerHTML += '<p>No purchase history found.</p>';
-                return;
-            }
+    fetch(`${apiUrl}/purchase/history`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    })
 
-            // Sort purchases by date in descending order (most recent first)
-            const sortedPurchases = user.purchases.sort((a, b) =>
-                new Date(b.purchaseDate) - new Date(a.purchaseDate)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Failed to fetch purchase history. Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(purchases => {
+        if (!purchases || purchases.length === 0) {
+            content.innerHTML += '<p>No purchase history found.</p>';
+            return;
+        }
+        // Sort purchases by date in descending order (most recent first)
+        const sortedPurchases = purchases.sort((a, b) =>
+            new Date(b.purchaseDate) - new Date(a.purchaseDate)
+        );
+
+        const purchasePromises = sortedPurchases.map(purchase => {
+            const purchaseDate = new Date(purchase.purchaseDate).toLocaleString();
+
+            const itemPromises = purchase.items.map(item =>
+                fetch(`${apiUrl}/books/${item.bookId}`)
+                    .then(response => response.json())
+                    .then(book => ({
+                        ...book,
+                        quantity: item.quantity
+                    }))
             );
 
-            sortedPurchases.forEach(purchase => {
+            return Promise.all(itemPromises).then(items => ({
+                purchaseDate,
+                items
+            }));
+        });
+
+        return Promise.all(purchasePromises);
+    })
+        .then(purchasesWithDetails => {
+            purchasesWithDetails.forEach(purchase => {
                 const purchaseDiv = document.createElement('div');
                 purchaseDiv.className = 'purchase-record';
-
-                // Format the date
-                const purchaseDate = new Date(purchase.purchaseDate).toLocaleString();
 
                 let totalItems = 0;
                 let totalCost = 0;
 
-                // Calculate totals and build items list
+                // Build items list and calculate totals
                 const itemsList = purchase.items.map(item => {
                     totalItems += item.quantity;
-                    const itemTotal = item.purchasePrice * item.quantity;
+                    const itemTotal = item.price * item.quantity;
                     totalCost += itemTotal;
+
                     return `
-                        <div class="purchase-item">
-                            <p><strong>${item.title}</strong> by ${item.author}</p>
-                            <p>Quantity: ${item.quantity}</p>
-                            <p>Price: $${item.purchasePrice.toFixed(2)}</p>
-                            <p>Total: $${itemTotal.toFixed(2)}</p>
-                        </div>
-                    `;
+                    <div class="purchase-item">
+                        <p><strong>${item.title}</strong> by ${item.author || 'Unknown Author'}</p>
+                        <p>Quantity: ${item.quantity}</p>
+                        <p>Price: $${item.price.toFixed(2)}</p>
+                        <p>Total: $${itemTotal.toFixed(2)}</p>
+                    </div>
+                `;
                 }).join('');
 
                 purchaseDiv.innerHTML = `
-                    <div class="purchase-header">
-                        <h3>Purchase Date: ${purchaseDate}</h3>
-                        <p><strong>Total Items:</strong> ${totalItems}</p>
-                        <p><strong>Total Cost:</strong> $${totalCost.toFixed(2)}</p>
-                    </div>
-                    <div class="purchase-items">
-                        ${itemsList}
-                    </div>
-                    <hr>
-                `;
+                <div class="purchase-header">
+                    <h3>Purchase Date: ${purchase.purchaseDate}</h3>
+                    <p><strong>Total Items:</strong> ${totalItems}</p>
+                    <p><strong>Total Cost:</strong> $${totalCost.toFixed(2)}</p>
+                </div>
+                <div class="purchase-items">
+                    ${itemsList}
+                </div>
+                <hr>
+            `;
 
                 content.appendChild(purchaseDiv);
             });
@@ -127,6 +163,7 @@ function showHome() {
     } else {
         loadBooks();
     }
+    updateRoleView();
 }
 
 function updateSearchInputs() {
@@ -480,13 +517,19 @@ function checkout() {
                 }
             });
     });
+    const token = getAuthToken();
+    if (!token) {
+        alert('You must log in to proceed with the checkout.');
+        return;
+    }
 
     Promise.all(validationPromises)
         .then(() => {
-            return fetch(`${apiUrl}/purchase/checkout?userId=${currentUserId}`, {
+            return fetch(`${apiUrl}/purchase/checkout`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(cart)
             });
@@ -506,3 +549,186 @@ function checkout() {
             alert(error.message);
         });
 }
+
+// Selectors for login and signup buttons
+const loginButton = document.getElementById('loginBtn');
+const signupButton = document.getElementById('signupBtn');
+
+// Selectors for modals
+const loginModal = document.getElementById('loginModal');
+const signupModal = document.getElementById('signupModal');
+
+// Selectors for modal close buttons
+const closeLogin = document.getElementById('closeLogin');
+const closeSignup = document.getElementById('closeSignup');
+
+const jwt_token = 'jwt_token'
+
+// Event listeners for login and signup buttons to open modals
+loginButton.addEventListener('click', () => {
+    loginModal.style.display = 'block';  // Show login modal
+});
+
+signupButton.addEventListener('click', () => {
+    signupModal.style.display = 'block';  // Show signup modal
+});
+
+// Event listeners for closing modals (clicking on the "X" button)
+closeLogin.addEventListener('click', () => {
+    loginModal.style.display = 'none';  // Close login modal
+});
+
+closeSignup.addEventListener('click', () => {
+    signupModal.style.display = 'none';  // Close signup modal
+});
+
+// Close modal when clicking outside of the modal content
+window.addEventListener('click', (event) => {
+    if (event.target === loginModal) {
+        loginModal.style.display = 'none';  // Close login modal if outside of content
+    } else if (event.target === signupModal) {
+        signupModal.style.display = 'none';  // Close signup modal if outside of content
+    }
+});
+
+// Handle login form submission
+document.getElementById('loginForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+
+    fetch(`${apiUrl}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    })
+        .then(response => {
+            if (!response.ok) throw new Error('Login failed');
+            return response.json();
+        })
+        .then(data => {
+            if(data.token) {
+                localStorage.setItem(jwt_token, data.token)
+                alert('Login successful!');
+                loginModal.style.display = 'none';
+                updateLoginStatus();
+                updateRoleView();
+            }
+        })
+        .catch(error => {
+            console.error('Error logging in:', error);
+            alert('Login failed. Please check your credentials.');
+        });
+});
+
+// Handle signup form submission
+document.getElementById('signupForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const username = document.getElementById('signupUsername').value.trim();
+    const password = document.getElementById('signupPassword').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const firstName = document.getElementById('signupFirstName').value.trim();
+    const lastName = document.getElementById('signupLastName').value.trim();
+
+    if (!username || !password || !email || !firstName || !lastName) {
+        alert("All fields are required.");
+        return;
+    }
+
+    fetch(`${apiUrl}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, email, firstName, lastName })
+    })
+        .then(response => {
+            if (!response.ok) {
+                if (response.headers.get('Content-Type')?.includes('application/json')) {
+                    return response.json().then(error => {
+                        throw new Error(error.message || 'Signup failed');
+                    });
+                } else {
+                    throw new Error('Signup failed: Non-JSON response from server');
+                }
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert('Signup successful! You can now log in.');
+            signupModal.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error signing up:', error);
+            alert(`Signup failed: ${error.message}`);
+        });
+});
+
+function getAuthToken() {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+        console.log('No token found'); // Debug log
+        return null;
+    }
+    return token;
+}
+
+function getCurrentUser() {
+    const token = getAuthToken();
+    if (!token) return null;
+
+    try {
+        // JWT tokens are split into three parts by dots
+        const payload = token.split('.')[1];
+        // Decode the base64 payload
+        const decoded = JSON.parse(atob(payload));
+        console.log("Decoded token payload:", decoded); // Debugging log
+        return decoded;
+    } catch (error) {
+        console.error('Error decoding token:', error);
+        return null;
+    }
+}
+// Add function to check user role
+function hasRole(role) {
+    const user = getCurrentUser();
+    return user && user.role === role;
+}
+
+// Selectors for status display
+const statusMessage = document.getElementById('statusMessage');
+const logoutBtn = document.getElementById('logoutBtn');
+
+// Function to check login status
+function updateLoginStatus() {
+    const token = getAuthToken();
+
+    if (token) {
+        const user = getCurrentUser(); // Decode the token to get user details
+        if (user && user.sub) {
+            statusMessage.textContent = `Logged in as ${user.sub}`; // Display username
+            logoutBtn.style.display = 'inline-block'; // Show logout button
+            loginButton.style.display = 'none';
+            signupButton.style.display = 'none';
+        } else {
+            statusMessage.textContent = 'You are not logged in.';
+            logoutBtn.style.display = 'none';
+            loginButton.style.display = 'inline-block';
+            signupButton.style.display = 'inline-block';
+        }
+    } else {
+        statusMessage.textContent = 'You are not logged in.';
+        logoutBtn.style.display = 'none';
+        loginButton.style.display = 'inline-block';
+        signupButton.style.display = 'inline-block';
+    }
+}
+// Function to handle logout
+logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem(jwt_token); // Remove token from localStorage
+    alert('You have been logged out.');
+    updateLoginStatus(); // Update the UI
+    updateRoleView();
+});
+
+
