@@ -13,17 +13,21 @@ public class RegistrationDTO {
     @NotBlank
     //@Size(min = 2, max = 50)
     private String username;
+
     @NotNull
     @NotBlank
     //@Size(min = 6, max = 32)
     private String password;
+
     @NotNull
     @NotBlank
     @Email
     private String email;
+
     @NotBlank
     @NotNull
     private String firstName;
+
     @NotBlank
     @NotNull
     private String lastName;

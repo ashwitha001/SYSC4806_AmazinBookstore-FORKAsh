@@ -37,10 +37,12 @@ public class UserService {
      */
     public void register(RegistrationDTO body, Role role) {
         User user = new User();
-        user.setUsername(body.getUsername());
         user.setRole(role);
+        user.setUsername(body.getUsername());
         user.setFirstName(body.getFirstName());
         user.setLastName(body.getLastName());
+        user.setEmail(body.getEmail());
+
         user.setPassword(encoder.encode(body.getPassword()));
         repo.save(user);
     }

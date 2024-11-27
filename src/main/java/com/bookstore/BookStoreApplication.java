@@ -78,13 +78,7 @@ public class BookStoreApplication {
             if (userRepository.count() == 0) {
                 log.info("Initializing default users...");
 
-                // Create customer user
-                RegistrationDTO customer = new RegistrationDTO("customer", "pass", "customer@email.com",
-                        "CustomerFirstName", "lastName");
-                userService.register(customer, Role.CUSTOMER);
-                log.info("Created customer user with ID: {}", customer.getUsername());
-
-                // Create admin user
+                // create admin user
                 RegistrationDTO admin = new RegistrationDTO("admin", "admin123", "admin@email.com",
                         "AdminFirst", "AdminLast");
                 userService.register(admin, Role.ADMIN);

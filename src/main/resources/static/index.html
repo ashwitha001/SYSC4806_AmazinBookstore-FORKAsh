@@ -3,48 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bookstore SPA</title>
+  <title>Bookstore</title>
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header>
-  <h1 id="homeBtn" style="cursor: pointer;">Bookstore</h1>
-  <div id="searchContainer">
-    <label for="searchType"></label>
-    <select id="searchType">
-      <option value="title">Title</option>
-      <option value="author">Author</option>
-      <option value="publisher">Publisher</option>
-      <option value="price">Price Range</option>
-      <option value="inventory">Inventory</option>
-    </select>
-    <label for="searchInput"></label>
-    <input type="text" id="searchInput" placeholder="Enter Keyword">
-    <label for="minValue"></label>
-    <input type="number" id="minValue" placeholder="Min value" style="display: none;">
-    <label for="maxValue"></label>
-    <input type="number" id="maxValue" placeholder="Max value" style="display: none;">
-    <button id="searchBtn">Search</button>
+<!-- Auth Content -->
+<div id="authContent">
+  <div class="auth-welcome">
+    <h1>Welcome to Bookstore</h1>
+    <p>Please login or signup to continue</p>
+    <div class="auth-buttons welcome-buttons">
+      <button id="welcomeLoginBtn">Login</button>
+      <button id="welcomeSignupBtn">Sign Up</button>
+    </div>
   </div>
-  <!-- Authentication Buttons -->
-  <div class="auth-buttons">
-    <button id="loginBtn">Login</button>
-    <button id="signupBtn">Sign Up</button>
-  </div>
-  <div id="customerActions">
-    <button id="viewCartBtn">View Cart (<span id="cartCount">0</span>)</button>
-    <button id="viewHistoryBtn">Purchase History</button>
-  </div>
-  <div id="loginStatus">
-    <span id="statusMessage">You are not logged in.</span>
-    <button id="logoutBtn" style="display: none;">Logout</button>
-  </div>
-</header>
+</div>
 
-<main id="content">
+<!-- Main Content -->
+<div id="mainContent" style="display: none;">
+  <header>
+    <h1 id="homeBtn">Bookstore</h1>
+    <div id="searchContainer">
+      <label for="searchType"></label>
+      <select id="searchType">
+        <option value="title">Title</option>
+        <option value="isbn">ISBN</option>
+        <option value="author">Author</option>
+        <option value="publisher">Publisher</option>
+        <option value="price">Price Range</option>
+        <option value="inventory">Inventory</option>
+      </select>
+      <label for="searchInput"></label>
+      <input type="text" id="searchInput" placeholder="Enter Keyword">
+      <label for="minValue"></label>
+      <input type="number" id="minValue" placeholder="Min value" style="display: none;">
+      <label for="maxValue"></label>
+      <input type="number" id="maxValue" placeholder="Max value" style="display: none;">
+      <button id="searchBtn">Search</button>
+    </div>
+    <div id="customerActions">
+      <button id="viewCartBtn">View Cart (<span id="cartCount">0</span>)</button>
+      <button id="viewHistoryBtn">Purchase History</button>
+    </div>
+    <div id="loginStatus">
+      <div class="user-menu">
+        <button id="userMenuBtn" class="user-menu-btn">
+          <span class="user-initial"></span>
+        </button>
+        <div class="user-dropdown">
+          <div class="user-info"></div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="editProfileBtn">Edit Profile</button>
+          <button class="dropdown-item" id="logoutBtn">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
 
-</main>
+  <main id="content">
+  </main>
+</div>
 
 <!-- Login Modal -->
 <div id="loginModal" class="modal">
@@ -74,8 +93,6 @@
     </form>
   </div>
 </div>
-
-<button id="roleSwitchBtn">Switch to Admin View</button>
 
 <script src="script.js"></script>
 </body>
