@@ -1,19 +1,16 @@
 package com.bookstore.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+import jakarta.persistence.Id;
+
+@Document(collection = "purchaseItems")
 public class PurchaseItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    private Long bookId;
+    private String bookId;
     private String isbn;
     private String title;
     private String author;
@@ -21,8 +18,7 @@ public class PurchaseItem {
 
     private Integer quantity;
 
-    @JsonBackReference
-    @ManyToOne
+    @DBRef
     private Checkout purchase;
 
     public PurchaseItem() {}
@@ -31,7 +27,7 @@ public class PurchaseItem {
      * Represents an individual item in a purchase order, storing book details at time of purchase.
      */
     public PurchaseItem(Book book, Integer quantity, Checkout purchase) {
-        this.bookId = (long) book.getId();
+        this.bookId = (String) book.getId();
         this.isbn = book.getIsbn();
         this.title = book.getTitle();
         this.author = book.getAuthor();
@@ -44,7 +40,7 @@ public class PurchaseItem {
      * Gets the unique identifier for this PurchaseItem.
      * @return the id of the PurchaseItem
      */
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -52,7 +48,7 @@ public class PurchaseItem {
      * Sets the unique identifier for this PurchaseItem.
      * @param id the id to set for the PurchaseItem
      */
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -60,7 +56,7 @@ public class PurchaseItem {
      * Gets the ID of the book associated with this PurchaseItem.
      * @return the book ID
      */
-    public Long getBookId() {
+    public String getBookId() {
         return bookId;
     }
 
@@ -68,7 +64,7 @@ public class PurchaseItem {
      * Sets the ID of the book associated with this PurchaseItem.
      * @param bookId the book ID to set
      */
-    public void setBookId(Long bookId) {
+    public void setBookId(String bookId) {
         this.bookId = bookId;
     }
 

@@ -6,7 +6,7 @@ package com.bookstore.dto;
  * Used for adding and removing items from the cart.
  */
 public class CartItemDTO {
-    private Long bookId;
+    private String bookId;
     private int quantity;
 
     public CartItemDTO() {}
@@ -16,7 +16,7 @@ public class CartItemDTO {
      * @param bookId the ID of the book
      * @param quantity the quantity of the book
      */
-    public CartItemDTO(Long bookId, int quantity) {
+    public CartItemDTO(String bookId, int quantity) {
         this.bookId = bookId;
         this.quantity = quantity;
     }
@@ -25,7 +25,7 @@ public class CartItemDTO {
      * Gets the ID of the book.
      * @return the book ID
      */
-    public Long getBookId() {
+    public String getBookId() {
         return bookId;
     }
 
@@ -33,7 +33,7 @@ public class CartItemDTO {
      * Sets the ID of the book.
      * @param bookId the new book ID
      */
-    public void setBookId(Long bookId) {
+    public void setBookId(String bookId) {
         this.bookId = bookId;
     }
 
