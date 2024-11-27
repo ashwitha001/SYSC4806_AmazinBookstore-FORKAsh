@@ -55,7 +55,7 @@ public class PurchaseController {
         List<PurchaseItem> purchaseItems = new ArrayList<>();
 
         for (CartItemDTO cartItemDTO : cartItems) {
-            Optional<Book> optionalBook = bookRepository.findById(cartItemDTO.getBookId());
+            Optional<Book> optionalBook = bookRepository.findById(cartItemDTO.getBookId());  // Use String ID
             if (optionalBook.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Book with ID " + cartItemDTO.getBookId() + " not found.");
@@ -130,8 +130,8 @@ public class PurchaseController {
      * @return A list of recommended books.
      */
     @GetMapping("/recommendations")
-    public ResponseEntity<List<Book>> getRecommendations(@RequestParam Long userId) {
-        // Implement recommendation logic here
+    public ResponseEntity<List<Book>> getRecommendations(@RequestParam String userId) {
+        // Implement recommendation logic here, using String userId
         return ResponseEntity.ok(new ArrayList<>()); // Placeholder
     }
 }
