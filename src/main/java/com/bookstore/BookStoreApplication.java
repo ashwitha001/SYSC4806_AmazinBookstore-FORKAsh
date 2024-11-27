@@ -43,7 +43,7 @@ public class BookStoreApplication {
     }
 
     /**
-     * Method to test MongoDB connection.
+     * Connects to the MongoDB
      */
     public static void MongoConnection() {
         String connectionString = "mongodb+srv://DBAccess:SYSC4806pass@cluster0.ag8xa.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
