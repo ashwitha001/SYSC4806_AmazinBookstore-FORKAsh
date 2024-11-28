@@ -1,20 +1,19 @@
 package com.bookstore.model;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "users")
+
+
+@Document(collection = "users")
 public class User {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    private String id;
     private String username;
-
-    @JsonIgnore
+ 
     private String password;
 
     private String firstName;
@@ -22,12 +21,9 @@ public class User {
     private String lastName;
 
     private String email;
-
-    @Enumerated(EnumType.STRING)
     private Role role;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @DBRef
     private List<Checkout> purchases;
 
     /**
@@ -49,7 +45,7 @@ public class User {
      * Gets the unique identifier of the user.
      * @return the unique identifier of the user
      */
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -57,7 +53,7 @@ public class User {
      * Sets the unique identifier of the user.
      * @param id the unique identifier to set for the user
      */
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

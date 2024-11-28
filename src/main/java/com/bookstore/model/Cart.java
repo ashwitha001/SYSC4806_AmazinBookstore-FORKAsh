@@ -2,25 +2,21 @@ package com.bookstore.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+
+@Document(collection = "carts")
 public class Cart {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @OneToOne
+    @DBRef
     private User user;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @DBRef
     private List<CartItem> items = new ArrayList<>();
 
     /**
@@ -40,7 +36,7 @@ public class Cart {
      * Gets the ID of this cart.
      * @return the cart ID
      */
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -48,7 +44,7 @@ public class Cart {
      * Sets the ID of this cart.
      * @param id the new ID for this cart
      */
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

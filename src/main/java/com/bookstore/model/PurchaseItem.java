@@ -1,29 +1,19 @@
 package com.bookstore.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "purchaseItems")
 public class PurchaseItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private Long bookId;
+    private String id;
+    private String bookId;
     private String isbn;
     private String title;
     private String author;
     private Double purchasePrice;
-
     private Integer quantity;
-
-    @JsonBackReference
-    @ManyToOne
-    private Checkout purchase;
+    private String purchaseId;
 
     public PurchaseItem() {}
 
@@ -31,20 +21,24 @@ public class PurchaseItem {
      * Represents an individual item in a purchase order, storing book details at time of purchase.
      */
     public PurchaseItem(Book book, Integer quantity, Checkout purchase) {
-        this.bookId = (long) book.getId();
-        this.isbn = book.getIsbn();
-        this.title = book.getTitle();
-        this.author = book.getAuthor();
-        this.purchasePrice = book.getPrice();
+        if (book != null) {
+            this.bookId = book.getId();
+            this.isbn = book.getIsbn();
+            this.title = book.getTitle();
+            this.author = book.getAuthor();
+            this.purchasePrice = book.getPrice();
+        }
         this.quantity = quantity;
-        this.purchase = purchase;
+        if (purchase != null) {
+            this.purchaseId = purchase.getId();
+        }
     }
 
     /**
      * Gets the unique identifier for this PurchaseItem.
      * @return the id of the PurchaseItem
      */
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -52,7 +46,7 @@ public class PurchaseItem {
      * Sets the unique identifier for this PurchaseItem.
      * @param id the id to set for the PurchaseItem
      */
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -60,7 +54,7 @@ public class PurchaseItem {
      * Gets the ID of the book associated with this PurchaseItem.
      * @return the book ID
      */
-    public Long getBookId() {
+    public String getBookId() {
         return bookId;
     }
 
@@ -68,7 +62,7 @@ public class PurchaseItem {
      * Sets the ID of the book associated with this PurchaseItem.
      * @param bookId the book ID to set
      */
-    public void setBookId(Long bookId) {
+    public void setBookId(String bookId) {
         this.bookId = bookId;
     }
 
@@ -152,19 +146,12 @@ public class PurchaseItem {
         this.quantity = quantity;
     }
 
-    /**
-     * Gets the purchase order that this PurchaseItem belongs to.
-     * @return the purchase order of this PurchaseItem
-     */
-    public Checkout getPurchase() {
-        return purchase;
+
+    public String getPurchaseId() {
+        return purchaseId;
     }
 
-    /**
-     * Sets the purchase order that this PurchaseItem belongs to.
-     * @param purchase the purchase order to set
-     */
-    public void setPurchase(Checkout purchase) {
-        this.purchase = purchase;
+    public void setPurchaseId(String purchaseId) {
+        this.purchaseId = purchaseId;
     }
 }

@@ -38,14 +38,14 @@ public class CartTest {
 
     @Test
     public void getId() {
-        adminCart.setId(1L);
-        assertEquals(Long.valueOf(1L), adminCart.getId());
+        adminCart.setId("1");
+        assertEquals("1", adminCart.getId());
     }
 
     @Test
     public void setId() {
-        adminCart.setId(2L);
-        assertEquals(Long.valueOf(2L), adminCart.getId());
+        adminCart.setId("2");
+        assertEquals("2", adminCart.getId());
     }
 
     @Test
@@ -104,6 +104,6 @@ public class CartTest {
         adminCart.addItem(cartItem);
         adminCart.removeItem(cartItem);
         assertFalse(adminCart.getItems().contains(cartItem));
-        assertNull(cartItem.getCart()); 
+        assertNull(cartItem.getCart());
     }
 }

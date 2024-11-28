@@ -1,10 +1,7 @@
 package com.bookstore.dto;
 
 public class CartItemDTO {
-    /** The ID of the book. */
-    private Long bookId;
-
-    /** The quantity of the book in the cart. */
+    private String bookId;
     private int quantity;
 
     /** The title of the book. */
@@ -34,7 +31,7 @@ public class CartItemDTO {
      * @param isbn          the ISBN of the book
      * @param purchasePrice the purchase price of the book
      */
-    public CartItemDTO(Long bookId, int quantity, String title, String author, String isbn, Double purchasePrice) {
+    public CartItemDTO(String bookId, int quantity, String title, String author, String isbn, Double purchasePrice) {
         this.bookId = bookId;
         this.quantity = quantity;
         this.title = title;
@@ -48,7 +45,7 @@ public class CartItemDTO {
      *
      * @return the book ID
      */
-    public Long getBookId() {
+    public String getBookId() {
         return bookId;
     }
 
@@ -57,7 +54,7 @@ public class CartItemDTO {
      *
      * @param bookId the book ID to set
      */
-    public void setBookId(Long bookId) {
+    public void setBookId(String bookId) {
         this.bookId = bookId;
     }
 

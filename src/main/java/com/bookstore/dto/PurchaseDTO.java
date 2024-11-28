@@ -8,7 +8,7 @@ import java.util.List;
  * Contains information about the purchase ID, date of purchase, and the items purchased.
  */
 public class PurchaseDTO {
-    private Long id;
+    private String id;
     private LocalDateTime purchaseDate;
     private List<CartItemDTO> items;
 
@@ -19,7 +19,7 @@ public class PurchaseDTO {
      * @param purchaseDate the date and time when the purchase was made
      * @param items        the list of items included in the purchase
      */
-    public PurchaseDTO(Long id, LocalDateTime purchaseDate, List<CartItemDTO> items) {
+    public PurchaseDTO(String id, LocalDateTime purchaseDate, List<CartItemDTO> items) {
         this.id = id;
         this.purchaseDate = purchaseDate;
         this.items = items;
@@ -30,7 +30,7 @@ public class PurchaseDTO {
      *
      * @return the purchase ID
      */
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -39,7 +39,7 @@ public class PurchaseDTO {
      *
      * @param id the purchase ID to set
      */
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
