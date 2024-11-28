@@ -774,10 +774,15 @@ function showAddBookForm() {
             fileName.textContent = file.name;
         }
     });
-    document.getElementById('addBookForm').addEventListener('submit', submitNewBookWithImage);
+    document.getElementById('addBookForm').addEventListener('submit', submitNewBook);
 }
 
-function submitNewBookWithImage(event) {
+/**
+ * Submits the new book data to the server.
+ *
+ * @param {Event} event - The form submit event.
+ */
+function submitNewBook(event) {
     event.preventDefault();
 
     const token = getAuthToken();
@@ -805,59 +810,6 @@ function submitNewBookWithImage(event) {
             'Authorization': `Bearer ${token}`
         },
         body: formData
-    })
-        .then(response => {
-            if (response.ok) {
-                alert('Book added successfully!');
-                loadAdminView();
-            } else if (response.status === 403) {
-                throw new Error('You do not have permission to add books.');
-            } else {
-                return response.text().then(text => { throw new Error(text); });
-            }
-        })
-        .catch(error => {
-            console.error('Error adding book:', error);
-            if (error.message.includes('ISBN')) {
-                alert('A book with this ISBN already exists. Please use a different ISBN.');
-            } else {
-                alert('An error occurred while adding the book: ' + error.message);
-            }
-        });
-}
-
-/**
- * Submits the new book data to the server.
- *
- * @param {Event} event - The form submit event.
- */
-function submitNewBook(event) {
-    event.preventDefault();
-
-    const token = getAuthToken();
-    if (!token) {
-        alert('You must be logged in to perform this action.');
-        return;
-    }
-
-    if (!hasRole('admin')) {
-        alert('You must be an administrator to add books.');
-        return;
-    }
-
-    const formData = new FormData(event.target);
-    const bookData = {};
-    formData.forEach((value, key) => {
-        bookData[key] = key === 'price' || key === 'inventory' ? Number(value) : value;
-    });
-
-    fetch(`${apiUrl}/books`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(bookData)
     })
         .then(response => {
             if (response.ok) {
@@ -985,7 +937,7 @@ function submitEditBook(event) {
 /**
  * Deletes a book from the server.
  *
- * @param {Event} event - The click event triggering the delete.
+ * @param {Event} event - The click event triggering to delete.
  */
 function deleteBook(event) {
     const bookId = event.target.getAttribute('data-id');
