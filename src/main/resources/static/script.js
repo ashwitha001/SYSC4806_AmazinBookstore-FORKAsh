@@ -715,10 +715,6 @@ function showAddBookForm() {
                     <input type="text" name="publisher">
                 </div>
                 <div class="form-group">
-                    <label>Picture URL</label>
-                    <input type="text" name="pictureURL">
-                </div>
-                <div class="form-group">
                     <label>Price</label>
                     <input type="number" step="0.01" name="price" required>
                 </div>
@@ -726,12 +722,108 @@ function showAddBookForm() {
                     <label>Inventory</label>
                     <input type="number" name="inventory" required>
                 </div>
+                <div class="form-group image-upload-container">
+                    <label>Book Cover Image</label>
+                    <div class="image-preview-area">
+                        <img id="imagePreview" src="/api/placeholder/200/300" alt="Preview" style="display: none;">
+                    </div>
+                    <input type="file" 
+                           id="coverImage" 
+                           name="coverImage" 
+                           accept="image/*"
+                           class="image-input">
+                    <label for="coverImage" class="image-upload-label">
+                        Choose File
+                    </label>
+                    <span id="fileName" class="file-name"></span>
+                </div>
                 <button type="submit">Add Book</button>
             </form>
         </div>
     `;
 
-    document.getElementById('addBookForm').addEventListener('submit', submitNewBook);
+    const imageInput = document.getElementById('coverImage');
+    const imagePreview = document.getElementById('imagePreview');
+    const fileName = document.getElementById('fileName');
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5000000) { // 5MB limit
+                alert('Image size should be less than 5MB');
+                this.value = '';
+                imagePreview.style.display = 'none';
+                fileName.textContent = '';
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file');
+                this.value = '';
+                imagePreview.style.display = 'none';
+                fileName.textContent = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+            fileName.textContent = file.name;
+        }
+    });
+    document.getElementById('addBookForm').addEventListener('submit', submitNewBookWithImage);
+}
+
+function submitNewBookWithImage(event) {
+    event.preventDefault();
+
+    const token = getAuthToken();
+    if (!token) {
+        alert('You must be logged in to perform this action.');
+        return;
+    }
+
+    if (!hasRole('admin')) {
+        alert('You must be an administrator to add books.');
+        return;
+    }
+
+    const formData = new FormData(event.target);
+    const imageFile = formData.get('coverImage');
+
+    if (imageFile && imageFile.size > 5000000) {
+        alert('Image size should be less than 5MB');
+        return;
+    }
+
+    fetch(`${apiUrl}/books`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    })
+        .then(response => {
+            if (response.ok) {
+                alert('Book added successfully!');
+                loadAdminView();
+            } else if (response.status === 403) {
+                throw new Error('You do not have permission to add books.');
+            } else {
+                return response.text().then(text => { throw new Error(text); });
+            }
+        })
+        .catch(error => {
+            console.error('Error adding book:', error);
+            if (error.message.includes('ISBN')) {
+                alert('A book with this ISBN already exists. Please use a different ISBN.');
+            } else {
+                alert('An error occurred while adding the book: ' + error.message);
+            }
+        });
 }
 
 /**
