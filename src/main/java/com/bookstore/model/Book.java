@@ -1,18 +1,16 @@
 package com.bookstore.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "books")
 public class Book {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id; // Primary key
+    private String id; // Primary key
 
-
+    @Indexed(unique = true)
     private String isbn;
 
     private String title;
@@ -23,7 +21,6 @@ public class Book {
     private double price;
     private int inventory; // Available stock
 
-    // Default JPA Constructor
     public Book() {}
 
     /**
@@ -45,8 +42,8 @@ public class Book {
         this.author = author;
         this.publisher = publisher;
         this.pictureURL = pictureURL;
-        setPrice(price); // Use setter to enforce validation
-        setInventory(inventory); // Use setter to enforce validation
+        setPrice(price);
+        setInventory(inventory);
     }
 
     /**
@@ -190,7 +187,7 @@ public class Book {
      * Gets the ID of this book.
      * @return the ID of this book
      */
-    public int getId() {
+    public String getId() {
         return id;
     }
 
@@ -198,7 +195,7 @@ public class Book {
      * Sets the ID of this book.
      * @param id the new ID for this book
      */
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 }

@@ -1,49 +1,42 @@
 package com.bookstore.model;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+@Document(collection = "checkouts")
 public class Checkout {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @JsonBackReference
-    @ManyToOne
-    private User user;
+    // Store user ID instead of DBRef
+    private String userId;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL)
-    private List<PurchaseItem> items;
+    // Instead of using DBRef, we'll store the items directly
+    private List<PurchaseItem> items = new ArrayList<>();
 
     private LocalDateTime purchaseDate;
 
     /**
-     * Default constructor for Checkout
+     * Default constructor for Checkout.
+     * Sets the purchase date to the current date and time.
      */
     public Checkout() {
         this.purchaseDate = LocalDateTime.now();
     }
 
     /**
-     * Constructs a Checkout with the specified user and list of purchased items.
+     * Constructs a Checkout with the specified user and initializes a new list of purchased items.
      * Sets the purchase date to the current date and time.
      * @param user the user associated with the checkout
-     * @param items the list of purchased items
      */
-    public Checkout(User user, List<PurchaseItem> items) {
-        this.user = user;
-        this.items = items;
+    public Checkout(User user) {
+        if (user != null) {
+            this.userId = user.getId();
+        }
+        this.items = new ArrayList<>();
         this.purchaseDate = LocalDateTime.now();
     }
 
@@ -51,7 +44,7 @@ public class Checkout {
      * Gets the ID of the checkout.
      * @return the ID of the checkout
      */
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -59,24 +52,24 @@ public class Checkout {
      * Sets the ID of the checkout.
      * @param id the new ID of the checkout
      */
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
     /**
-     * Gets the user associated with the checkout.
-     * @return the user associated with the checkout
+     * Gets the user ID associated with the checkout.
+     * @return the user ID
      */
-    public User getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
     }
 
     /**
-     * Sets the user associated with the checkout.
-     * @param user the new user associated with the checkout
+     * Sets the user ID associated with the checkout.
+     * @param userId the new user ID
      */
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     /**
@@ -92,7 +85,7 @@ public class Checkout {
      * @param items the new list of purchased items
      */
     public void setItems(List<PurchaseItem> items) {
-        this.items = items;
+        this.items = items != null ? items : new ArrayList<>();
     }
 
     /**
@@ -109,5 +102,26 @@ public class Checkout {
      */
     public void setPurchaseDate(LocalDateTime purchaseDate) {
         this.purchaseDate = purchaseDate;
+    }
+
+    /**
+     * Adds an item to the checkout's list of items.
+     * @param item the item to add
+     */
+    public void addItem(PurchaseItem item) {
+        if (this.items == null) {
+            this.items = new ArrayList<>();
+        }
+        this.items.add(item);
+    }
+
+    /**
+     * Removes an item from the checkout's list of items.
+     * @param item the item to remove
+     */
+    public void removeItem(PurchaseItem item) {
+        if (this.items != null) {
+            this.items.remove(item);
+        }
     }
 }

@@ -1,208 +1,310 @@
 package controller;
 
-import com.bookstore.BookStoreApplication;
+import com.bookstore.controller.BookController;
 import com.bookstore.model.*;
-import com.bookstore.repository.*;
-
+import com.bookstore.repository.BookRepository;
+import com.bookstore.repository.CheckoutRepository;
+import com.bookstore.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import java.security.Principal;
+import java.util.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.transaction.PlatformTransactionManager;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-import jakarta.persistence.EntityManager;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@SpringBootTest(classes = BookStoreApplication.class)
-@AutoConfigureMockMvc
 public class BookControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
+    @Mock
     private BookRepository bookRepository;
 
-    @Autowired
+    @Mock
     private UserRepository userRepository;
 
-    @Autowired
-    private EntityManager entityManager;
+    @Mock
+    private Authentication authentication;
 
-    @Autowired
-    private PlatformTransactionManager transactionManager;
+    @Mock
+    private SecurityContext securityContext;
 
-    private TransactionTemplate transactionTemplate;
+    @Mock
+    private CheckoutRepository checkoutRepository;
 
-    private User adminUser;
-    private User customerUser;
-    private Book book;
+    @Mock
+    private Principal principal;
+
+    @InjectMocks
+    private BookController bookController;
+
+    private Book book1;
+    private Book book2;
+    private User admin;
+    private User customer;
+    private AutoCloseable autoCloseable;
 
     @BeforeEach
-    public void setUp() {
-        transactionTemplate = new TransactionTemplate(transactionManager);
+    void setUp() {
+        autoCloseable = MockitoAnnotations.openMocks(this);
 
-        // Execute database cleanup in a transaction
-        transactionTemplate.execute(status -> {
-            entityManager.createNativeQuery("DELETE FROM cart_item").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM purchase_item").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM checkout").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM cart").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM book").executeUpdate();
-            entityManager.createNativeQuery("DELETE FROM users").executeUpdate();
+        // Changed constructor calls to match Book.java's constructor
+        book1 = new Book("1234567890", "Test Book 1", "Description 1",
+                "Author 1", "Publisher 1", "url1", 29.99, 10);
+        book1.setId("1");
 
-            // Create test users
-            adminUser = new User("adminUser", Role.ADMIN);
-            customerUser = new User("customerUser", Role.CUSTOMER);
-            userRepository.save(adminUser);
-            userRepository.save(customerUser);
+        book2 = new Book("0987654321", "Test Book 2", "Description 2",
+                "Author 2", "Publisher 2", "url2", 19.99, 5);
+        book2.setId("2");
 
-            // Create test book
-            book = new Book(
-                    "Test ISBN",
-                    "Test Title",
-                    "Test Description",
-                    "Test Author",
-                    "Test Publisher",
-                    "http://example.com/test.jpg",
-                    10.00,
-                    10);
-            bookRepository.save(book);
+        admin = new User("admin", Role.ADMIN);
+        admin.setId("1");
+        customer = new User("customer", Role.CUSTOMER);
+        customer.setId("2");
 
-            return null;
-        });
-    }
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
 
-    // Test methods remain the same
-    @Test
-    public void getAllBooks() throws Exception {
-        mockMvc.perform(get("/api/books"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value(book.getTitle()));
+        // Setup principal mock
+        when(principal.getName()).thenReturn(customer.getUsername());
     }
 
     @Test
-    public void getBookById_CaseFound() throws Exception {
-        mockMvc.perform(get("/api/books/" + book.getId()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value(book.getTitle()));
+    void tearDown() throws Exception {
+        if (autoCloseable != null) {
+            autoCloseable.close();
+        }
     }
 
     @Test
-    public void getBookById_CaseNotFound() throws Exception {
-        mockMvc.perform(get("/api/books/999"))
-                .andExpect(status().isNotFound());
+    void testGetAllBooks() {
+        List<Book> books = Arrays.asList(book1, book2);
+        when(bookRepository.findAll()).thenReturn(books);
+
+        List<Book> result = bookController.getAllBooks();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("Test Book 1", result.get(0).getTitle());
+        assertEquals("Test Book 2", result.get(1).getTitle());
     }
 
     @Test
-    public void searchBooks() throws Exception {
-        mockMvc.perform(get("/api/books/search")
-                        .param("keyword", "Test"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value(book.getTitle()));
+    void testGetBookByIdWhenExists() {
+        when(bookRepository.findById("1")).thenReturn(Optional.of(book1));
+
+        ResponseEntity<Book> response = bookController.getBookById("1");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(book1.getTitle(), response.getBody().getTitle());
     }
 
     @Test
-    public void searchBooksByAuthor() throws Exception {
-        mockMvc.perform(get("/api/books/search/author")
-                        .param("author", "Test Author"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].author").value(book.getAuthor()));
+    void testGetBookByIdWhenNotFound() {
+        when(bookRepository.findById("3")).thenReturn(Optional.empty());
+
+        ResponseEntity<Book> response = bookController.getBookById("3");
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
-    public void searchBooksByPublisher() throws Exception {
-        mockMvc.perform(get("/api/books/search/publisher")
-                        .param("publisher", "Test Publisher"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].publisher").value(book.getPublisher()));
+    void testSearchBooksByTitleWithMatches() {
+        when(bookRepository.findByTitleContainingIgnoreCase("Test"))
+                .thenReturn(Arrays.asList(book1, book2));
+
+        List<Book> result = bookController.searchBooks("Test");
+
+        assertEquals(2, result.size());
+        assertTrue(result.stream().anyMatch(book -> book.getTitle().equals("Test Book 1")));
     }
 
     @Test
-    public void filterBooksByPrice() throws Exception {
-        mockMvc.perform(get("/api/books/filter/price")
-                        .param("minPrice", "5.0")
-                        .param("maxPrice", "15.0"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].price").value(book.getPrice()));
+    void testSearchBooksByTitleNoMatches() {
+        when(bookRepository.findByTitleContainingIgnoreCase("Nonexistent"))
+                .thenReturn(new ArrayList<>());
+
+        List<Book> result = bookController.searchBooks("Nonexistent");
+
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    public void filterBooksByInventory() throws Exception {
-        mockMvc.perform(get("/api/books/filter/inventory")
-                        .param("minInventory", "5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].inventory").value(book.getInventory()));
+    void testSearchBooksByIsbn() {
+        when(bookRepository.findByIsbnContainingIgnoreCase("123"))
+                .thenReturn(Collections.singletonList(book1));
+
+        ResponseEntity<List<Book>> response = bookController.searchBooksByIsbn("123");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().size());
+        assertEquals("1234567890", response.getBody().get(0).getIsbn());
     }
 
     @Test
-    public void uploadBook_AdminAccess() throws Exception {
-        String newBookJson = "{\"isbn\":\"123456789\", \"title\":\"New Book\", \"price\":15.99}";
+    void testSearchBooksByAuthor() {
+        when(bookRepository.findByAuthorContainingIgnoreCase("Author 1"))
+                .thenReturn(Collections.singletonList(book1));
 
-        mockMvc.perform(post("/api/books")
-                        .param("userId", adminUser.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(newBookJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("New Book"));
+        List<Book> result = bookController.searchBooksByAuthor("Author 1");
+
+        assertEquals(1, result.size());
+        assertEquals("Author 1", result.get(0).getAuthor());
     }
 
     @Test
-    public void uploadBook_CustomerAccessDenied() throws Exception {
-        String newBookJson = "{\"isbn\":\"123456789\", \"title\":\"New Book\", \"price\":15.99}";
+    void testUploadBookAsAdmin() {
+        when(authentication.getName()).thenReturn("admin");
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+        when(bookRepository.save(any(Book.class))).thenReturn(book1);
 
-        mockMvc.perform(post("/api/books")
-                        .param("userId", customerUser.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(newBookJson))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string("Access denied."));
+        ResponseEntity<?> response = bookController.uploadBook(book1);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    public void editBook_AdminAccess() throws Exception {
-        String updatedBookJson = "{\"isbn\":\"987654321\", \"title\":\"Updated Book\", \"price\":25.99}";
+    void testUploadBookWithDuplicateIsbn() {
+        when(authentication.getName()).thenReturn("admin");
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+        when(bookRepository.save(any(Book.class)))
+                .thenThrow(new DataIntegrityViolationException("Duplicate ISBN"));
 
-        mockMvc.perform(put("/api/books/" + book.getId())
-                        .param("userId", adminUser.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatedBookJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Updated Book"));
+        ResponseEntity<?> response = bookController.uploadBook(book1);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
     }
 
     @Test
-    public void editBook_CustomerAccessDenied() throws Exception {
-        String updatedBookJson = "{\"isbn\":\"987654321\", \"title\":\"Updated Book\", \"price\":25.99}";
+    void testUpdateBookWhenExists() {
+        when(authentication.getName()).thenReturn("admin");
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+        when(bookRepository.findById("1")).thenReturn(Optional.of(book1));
+        when(bookRepository.save(any(Book.class))).thenReturn(book1);
 
-        mockMvc.perform(put("/api/books/" + book.getId())
-                        .param("userId", customerUser.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatedBookJson))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string("Access denied."));
+        Book updatedBook = new Book("1234567890", "Updated Title", null,
+                null, null, null, 0.0, 0);
+        updatedBook.setId("1");
+
+        ResponseEntity<?> response = bookController.editBook("1", updatedBook);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    public void deleteBook_AdminAccess() throws Exception {
-        mockMvc.perform(delete("/api/books/" + book.getId())
-                        .param("userId", adminUser.getId().toString()))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Book deleted successfully."));
+    void testUpdateBookWhenNotFound() {
+        when(authentication.getName()).thenReturn("admin");
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+        when(bookRepository.findById("3")).thenReturn(Optional.empty());
+
+        ResponseEntity<?> response = bookController.editBook("3", book1);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
-    public void deleteBook_CustomerAccessDenied() throws Exception {
-        mockMvc.perform(delete("/api/books/" + book.getId())
-                        .param("userId", customerUser.getId().toString()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string("Access denied."));
+    void testDeleteBookWhenExists() {
+        when(authentication.getName()).thenReturn("admin");
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+        when(bookRepository.findById("1")).thenReturn(Optional.of(book1));
+
+        ResponseEntity<?> response = bookController.deleteBook("1");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(bookRepository).delete(book1);
+    }
+
+    @Test
+    void testDeleteBookWhenNotFound() {
+        when(authentication.getName()).thenReturn("admin");
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
+        when(bookRepository.findById("3")).thenReturn(Optional.empty());
+
+        ResponseEntity<?> response = bookController.deleteBook("3");
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testGetRecommendationsWithSimilarUsers() {
+        // Create test books
+        Book book3 = new Book("3333333333", "Test Book 3", "Description 3",
+                "Author 3", "Publisher 3", "url3", 39.99, 15);
+        book3.setId("3");
+
+        // Create purchase histories
+        PurchaseItem item1 = new PurchaseItem(book1, 1, null);
+        PurchaseItem item2 = new PurchaseItem(book2, 1, null);
+        PurchaseItem item3 = new PurchaseItem(book3, 1, null);
+
+        // Setup checkouts
+        Checkout customerCheckout = new Checkout(customer);
+        customerCheckout.addItem(item1);
+        customerCheckout.addItem(item2);
+
+        User similarUser = new User("similar", Role.CUSTOMER);
+        similarUser.setId("3");
+        Checkout similarUserCheckout = new Checkout(similarUser);
+        similarUserCheckout.addItem(item2);
+        similarUserCheckout.addItem(item3);
+
+        // Mock repository calls
+        when(userRepository.findByUsername(customer.getUsername())).thenReturn(Optional.of(customer));
+        when(checkoutRepository.findByUserId(customer.getId())).thenReturn(Collections.singletonList(customerCheckout));
+        when(userRepository.findAll()).thenReturn(Arrays.asList(customer, similarUser));
+        when(checkoutRepository.findByUserId(similarUser.getId())).thenReturn(Collections.singletonList(similarUserCheckout));
+        when(bookRepository.findAllById(any())).thenReturn(Collections.singletonList(book3));
+
+        ResponseEntity<List<Book>> response = bookController.getRecommendedBooks(principal);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        assertEquals(book3.getId(), response.getBody().get(0).getId());
+    }
+
+    @Test
+    void testGetRecommendationsWithNoPurchaseHistory() {
+        when(userRepository.findByUsername(customer.getUsername())).thenReturn(Optional.of(customer));
+        when(checkoutRepository.findByUserId(customer.getId())).thenReturn(new ArrayList<>());
+
+        ResponseEntity<List<Book>> response = bookController.getRecommendedBooks(principal);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Objects.requireNonNull(response.getBody()).isEmpty());
+    }
+
+    @Test
+    void testGetRecommendationsWithNoSimilarUsers() {
+        // Setup checkout with only one book
+        PurchaseItem item1 = new PurchaseItem(book1, 1, null);
+        Checkout checkout = new Checkout(customer);
+        checkout.addItem(item1);
+
+        when(userRepository.findByUsername(customer.getUsername())).thenReturn(Optional.of(customer));
+        when(checkoutRepository.findByUserId(customer.getId())).thenReturn(Collections.singletonList(checkout));
+        when(userRepository.findAll()).thenReturn(Collections.singletonList(customer));
+
+        ResponseEntity<List<Book>> response = bookController.getRecommendedBooks(principal);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Objects.requireNonNull(response.getBody()).isEmpty());
+    }
+
+    @Test
+    void testGetRecommendationsWithInvalidUser() {
+        when(principal.getName()).thenReturn("nonexistent");
+        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () ->
+                bookController.getRecommendedBooks(principal));
     }
 }

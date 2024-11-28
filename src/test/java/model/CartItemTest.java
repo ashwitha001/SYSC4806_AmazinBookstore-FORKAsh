@@ -30,14 +30,14 @@ public class CartItemTest {
 
     @Test
     public void getId() {
-        cartItem.setId(1L);
-        assertEquals(Long.valueOf(1L), cartItem.getId());
+        cartItem.setId("1");
+        assertEquals("1", cartItem.getId());
     }
 
     @Test
     public void setId() {
-        cartItem.setId(2L);
-        assertEquals(Long.valueOf(2L), cartItem.getId());
+        cartItem.setId("2");
+        assertEquals("2", cartItem.getId());
     }
 
     @Test
