@@ -55,7 +55,7 @@ public class BookControllerTest {
         autoCloseable = MockitoAnnotations.openMocks(this);
 
         book1 = new Book();
-        book1.setId(1);
+        book1.setId("1");
         book1.setIsbn("1234567890");
         book1.setTitle("Test Book 1");
         book1.setDescription("Description 1");
@@ -66,7 +66,7 @@ public class BookControllerTest {
         book1.setInventory(10);
 
         book2 = new Book();
-        book2.setId(2);
+        book2.setId("2");
         book2.setIsbn("0987654321");
         book2.setTitle("Test Book 2");
         book2.setDescription("Description 2");
@@ -111,9 +111,9 @@ public class BookControllerTest {
      */
     @Test
     void testGetExistingBook() {
-        when(bookRepository.findById(1L)).thenReturn(Optional.of(book1));
+        when(bookRepository.findById("1L")).thenReturn(Optional.of(book1));
 
-        ResponseEntity<Book> response = bookController.getBookById(1L);
+        ResponseEntity<Book> response = bookController.getBookById("1L");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(book1.getTitle(), response.getBody().getTitle());
@@ -124,9 +124,9 @@ public class BookControllerTest {
      */
     @Test
     void testGetNonexistentBook() {
-        when(bookRepository.findById(1L)).thenReturn(Optional.empty());
+        when(bookRepository.findById("1L")).thenReturn(Optional.empty());
 
-        ResponseEntity<Book> response = bookController.getBookById(1L);
+        ResponseEntity<Book> response = bookController.getBookById("1L");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -222,15 +222,15 @@ public class BookControllerTest {
     void testUpdateExistingBook() {
         when(authentication.getName()).thenReturn("admin");
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
-        when(bookRepository.findById(1L)).thenReturn(Optional.of(book1));
+        when(bookRepository.findById("1L")).thenReturn(Optional.of(book1));
         when(bookRepository.save(any(Book.class))).thenReturn(book1);
 
         Book updatedBook = new Book();
-        updatedBook.setId(1);
+        updatedBook.setId("1");
         updatedBook.setTitle("Updated Title");
         updatedBook.setIsbn("1234567890");
 
-        ResponseEntity<?> response = bookController.editBook(1L, updatedBook);
+        ResponseEntity<?> response = bookController.editBook("1L", updatedBook);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -242,9 +242,9 @@ public class BookControllerTest {
     void testUpdateNonexistentBook() {
         when(authentication.getName()).thenReturn("admin");
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
-        when(bookRepository.findById(1L)).thenReturn(Optional.empty());
+        when(bookRepository.findById("1L")).thenReturn(Optional.empty());
 
-        ResponseEntity<?> response = bookController.editBook(1L, book1);
+        ResponseEntity<?> response = bookController.editBook("1L", book1);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -256,9 +256,9 @@ public class BookControllerTest {
     void testDeleteExistingBook() {
         when(authentication.getName()).thenReturn("admin");
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
-        when(bookRepository.findById(1L)).thenReturn(Optional.of(book1));
+        when(bookRepository.findById("1L")).thenReturn(Optional.of(book1));
 
-        ResponseEntity<?> response = bookController.deleteBook(1L);
+        ResponseEntity<?> response = bookController.deleteBook("1L");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(bookRepository).delete(book1);
@@ -271,9 +271,9 @@ public class BookControllerTest {
     void testDeleteNonexistentBook() {
         when(authentication.getName()).thenReturn("admin");
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(admin));
-        when(bookRepository.findById(1L)).thenReturn(Optional.empty());
+        when(bookRepository.findById("1L")).thenReturn(Optional.empty());
 
-        ResponseEntity<?> response = bookController.deleteBook(1L);
+        ResponseEntity<?> response = bookController.deleteBook("1L");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -285,17 +285,17 @@ public class BookControllerTest {
     void testGetRecommendationsWithSimilarUsers() {
         // Create test users
         User user1 = new User("user1", Role.CUSTOMER);
-        user1.setId(1L);
+        user1.setId("1L");
         User user2 = new User("user2", Role.CUSTOMER);
-        user2.setId(2L);
+        user2.setId("2L");
 
         // Create test books
         Book book1 = new Book();
-        book1.setId(1);
+        book1.setId("1");
         Book book2 = new Book();
-        book2.setId(2);
+        book2.setId("2");
         Book book3 = new Book();
-        book3.setId(3);
+        book3.setId("3");
 
         // Create purchase histories
         Checkout user1Checkout = new Checkout();
