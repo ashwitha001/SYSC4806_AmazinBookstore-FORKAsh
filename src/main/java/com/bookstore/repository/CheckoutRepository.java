@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface CheckoutRepository extends MongoRepository<Checkout, Long>{
-    List<Checkout> findByUser(User user);
+    List<Checkout> findByUserId(String userId);
 }

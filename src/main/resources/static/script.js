@@ -715,10 +715,6 @@ function showAddBookForm() {
                     <input type="text" name="publisher">
                 </div>
                 <div class="form-group">
-                    <label>Picture URL</label>
-                    <input type="text" name="pictureURL">
-                </div>
-                <div class="form-group">
                     <label>Price</label>
                     <input type="number" step="0.01" name="price" required>
                 </div>
@@ -726,12 +722,108 @@ function showAddBookForm() {
                     <label>Inventory</label>
                     <input type="number" name="inventory" required>
                 </div>
+                <div class="form-group image-upload-container">
+                    <label>Book Cover Image</label>
+                    <div class="image-preview-area">
+                        <img id="imagePreview" src="/api/placeholder/200/300" alt="Preview" style="display: none;">
+                    </div>
+                    <input type="file" 
+                           id="coverImage" 
+                           name="coverImage" 
+                           accept="image/*"
+                           class="image-input">
+                    <label for="coverImage" class="image-upload-label">
+                        Choose File
+                    </label>
+                    <span id="fileName" class="file-name"></span>
+                </div>
                 <button type="submit">Add Book</button>
             </form>
         </div>
     `;
 
-    document.getElementById('addBookForm').addEventListener('submit', submitNewBook);
+    const imageInput = document.getElementById('coverImage');
+    const imagePreview = document.getElementById('imagePreview');
+    const fileName = document.getElementById('fileName');
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5000000) { // 5MB limit
+                alert('Image size should be less than 5MB');
+                this.value = '';
+                imagePreview.style.display = 'none';
+                fileName.textContent = '';
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file');
+                this.value = '';
+                imagePreview.style.display = 'none';
+                fileName.textContent = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+            fileName.textContent = file.name;
+        }
+    });
+    document.getElementById('addBookForm').addEventListener('submit', submitNewBookWithImage);
+}
+
+function submitNewBookWithImage(event) {
+    event.preventDefault();
+
+    const token = getAuthToken();
+    if (!token) {
+        alert('You must be logged in to perform this action.');
+        return;
+    }
+
+    if (!hasRole('admin')) {
+        alert('You must be an administrator to add books.');
+        return;
+    }
+
+    const formData = new FormData(event.target);
+    const imageFile = formData.get('coverImage');
+
+    if (imageFile && imageFile.size > 5000000) {
+        alert('Image size should be less than 5MB');
+        return;
+    }
+
+    fetch(`${apiUrl}/books`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    })
+        .then(response => {
+            if (response.ok) {
+                alert('Book added successfully!');
+                loadAdminView();
+            } else if (response.status === 403) {
+                throw new Error('You do not have permission to add books.');
+            } else {
+                return response.text().then(text => { throw new Error(text); });
+            }
+        })
+        .catch(error => {
+            console.error('Error adding book:', error);
+            if (error.message.includes('ISBN')) {
+                alert('A book with this ISBN already exists. Please use a different ISBN.');
+            } else {
+                alert('An error occurred while adding the book: ' + error.message);
+            }
+        });
 }
 
 /**
@@ -1017,50 +1109,52 @@ function viewCart() {
     content.appendChild(cartContainer);
 
     let totalCost = 0;
-    const fetchPromises = cart.map(item => {
-        return fetch(`${apiUrl}/books/${item.bookId}`)
+
+    Promise.all(cart.map(item =>
+        fetch(`${apiUrl}/books/${item.bookId}`)
             .then(response => response.json())
-            .then(book => {
+            .then(book => ({ book, quantity: item.quantity, bookId: item.bookId }))
+    ))
+        .then(bookItems => {
+            bookItems.forEach(({ book, quantity, bookId }) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'cart-item';
-                const itemTotal = book.price * item.quantity;
+                const itemTotal = book.price * quantity;
                 totalCost += itemTotal;
 
                 itemDiv.innerHTML = `
-                    <div class="cart-item-details">
-                        <h3>${book.title}</h3>
-                        <p><strong>Author:</strong> ${book.author || 'Unknown Author'}</p>
-                        <p><strong>Price:</strong> $${book.price.toFixed(2)}</p>
-                        <div class="quantity-controls">
-                            <button class="quantity-btn" onclick="updateCartItemQuantity('${item.bookId}', ${item.quantity - 1})">-</button>
-                            <span class="quantity">${item.quantity}</span>
-                            <button class="quantity-btn" onclick="updateCartItemQuantity('${item.bookId}', ${item.quantity + 1})">+</button>
-                        </div>
-                        <p><strong>Total:</strong> $${itemTotal.toFixed(2)}</p>
-                        <button class="remove-item" onclick="removeFromCart('${item.bookId}')">Remove</button>
+                <div class="cart-item-details" data-cart-item="${bookId}">
+                    <h3>${book.title}</h3>
+                    <p><strong>Author:</strong> ${book.author || 'Unknown Author'}</p>
+                    <p><strong>Price:</strong> $${book.price.toFixed(2)}</p>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus-btn" onclick="updateCartItemQuantity('${bookId}', ${quantity - 1})">-</button>
+                        <span class="quantity">${quantity}</span>
+                        <button class="quantity-btn plus-btn" onclick="updateCartItemQuantity('${bookId}', ${quantity + 1})">+</button>
                     </div>
-                `;
+                    <p><strong>Total:</strong> <span class="item-total">$${itemTotal.toFixed(2)}</span></p>
+                    <button class="remove-item" onclick="removeFromCart('${bookId}')">Remove</button>
+                </div>
+            `;
 
                 cartContainer.appendChild(itemDiv);
             });
-    });
 
-    Promise.all(fetchPromises).then(() => {
-        const checkoutSection = document.createElement('div');
-        checkoutSection.className = 'checkout-section';
-        checkoutSection.innerHTML = `
+            const checkoutSection = document.createElement('div');
+            checkoutSection.className = 'checkout-section';
+            checkoutSection.innerHTML = `
             <div class="cart-summary">
                 <h3>Order Summary</h3>
-                <p><strong>Total Items:</strong> ${cart.reduce((total, item) => total + item.quantity, 0)}</p>
-                <p><strong>Total Cost:</strong> $${totalCost.toFixed(2)}</p>
+                <p><strong>Total Items: ${cart.reduce((total, item) => total + item.quantity, 0)}</strong></p>
+                <p><strong>Total Cost: $${totalCost.toFixed(2)}</strong></p>
                 <button id="checkoutBtn" class="checkout-btn">Proceed to Checkout</button>
                 <button onclick="showHome()" class="continue-shopping">Continue Shopping</button>
             </div>
         `;
-        content.appendChild(checkoutSection);
+            content.appendChild(checkoutSection);
 
-        document.getElementById('checkoutBtn').addEventListener('click', checkout);
-    });
+            document.getElementById('checkoutBtn').addEventListener('click', checkout);
+        });
 }
 
 /**
@@ -1087,13 +1181,66 @@ function updateCartItemQuantity(bookId, newQuantity) {
             if (cartItem) {
                 cartItem.quantity = newQuantity;
                 updateCartCount();
-                viewCart();
+
+                // Find the cart item container
+                const itemContainer = document.querySelector(`div[data-cart-item="${bookId}"]`);
+                if (itemContainer) {
+                    // Update quantity
+                    const quantitySpan = itemContainer.querySelector('.quantity');
+                    if (quantitySpan) {
+                        quantitySpan.textContent = newQuantity;
+                    }
+
+                    // Update item total
+                    const itemTotal = book.price * newQuantity;
+                    const totalSpan = itemContainer.querySelector('.item-total');
+                    if (totalSpan) {
+                        totalSpan.textContent = `$${itemTotal.toFixed(2)}`;
+                    }
+
+                    // Update quantity buttons
+                    const minusBtn = itemContainer.querySelector('.minus-btn');
+                    const plusBtn = itemContainer.querySelector('.plus-btn');
+                    if (minusBtn && plusBtn) {
+                        minusBtn.onclick = () => updateCartItemQuantity(bookId, newQuantity - 1);
+                        plusBtn.onclick = () => updateCartItemQuantity(bookId, newQuantity + 1);
+                    }
+
+                    // Update cart summary
+                    updateCartSummary();
+                }
             }
         })
         .catch(error => {
             console.error('Error updating quantity:', error);
             alert('An error occurred while updating the quantity.');
         });
+}
+
+function updateCartSummary() {
+    const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+
+    Promise.all(cart.map(item =>
+        fetch(`${apiUrl}/books/${item.bookId}`)
+            .then(response => response.json())
+            .then(book => book.price * item.quantity)
+    )).then(itemTotals => {
+        const totalCost = itemTotals.reduce((sum, total) => sum + total, 0);
+
+        // Update summary display
+        const summaryDiv = document.querySelector('.cart-summary');
+        if (summaryDiv) {
+            const itemCountElem = summaryDiv.querySelector('p:first-of-type strong');
+            const totalCostElem = summaryDiv.querySelector('p:last-of-type strong');
+
+            if (itemCountElem) {
+                itemCountElem.textContent = `Total Items: ${totalItems}`;
+            }
+            if (totalCostElem) {
+                totalCostElem.textContent = `Total Cost: $${totalCost.toFixed(2)}`;
+            }
+        }
+    });
 }
 
 /**

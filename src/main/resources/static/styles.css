@@ -270,6 +270,68 @@ form input, form textarea {
     box-sizing: border-box;
 }
 
+/* Image upload styles */
+.image-upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.image-preview-area {
+    width: 200px;
+    height: 300px;
+    margin-bottom: 15px;
+    background-color: var(--color-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 2px 2px 5px var(--color-shadow),
+    inset -5px -5px 10px var(--color-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#imagePreview {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.image-input {
+    display: none;
+}
+
+.image-upload-label {
+    padding: 10px 20px;
+    background-color: var(--color-bg);
+    color: var(--white);
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: -5px -5px 20px var(--color-light),
+    5px 5px 20px var(--color-shadow);
+    transition: all 0.2s ease-in-out;
+}
+
+.image-upload-label:hover {
+    box-shadow: -2px -2px 5px var(--color-light),
+    2px 2px 5px var(--color-shadow);
+}
+
+.image-upload-label:active {
+    box-shadow: inset 1px 1px 2px var(--color-shadow),
+    inset -1px -1px 2px var(--color-light);
+}
+
+.file-name {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: var(--white);
+    opacity: 0.7;
+    text-align: center;
+    word-break: break-all;
+    max-width: 200px;
+}
+
 /* ===============================
    Buttons
    =============================== */
