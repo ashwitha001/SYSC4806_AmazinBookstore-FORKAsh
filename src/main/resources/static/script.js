@@ -715,6 +715,10 @@ function showAddBookForm() {
                     <input type="text" name="publisher">
                 </div>
                 <div class="form-group">
+                    <label>Picture URL</label>
+                    <input type="text" name="pictureURL">
+                </div>
+                <div class="form-group">
                     <label>Price</label>
                     <input type="number" step="0.01" name="price" required>
                 </div>
@@ -722,58 +726,11 @@ function showAddBookForm() {
                     <label>Inventory</label>
                     <input type="number" name="inventory" required>
                 </div>
-                <div class="form-group image-upload-container">
-                    <label>Book Cover Image</label>
-                    <div class="image-preview-area">
-                        <img id="imagePreview" src="/api/placeholder/200/300" alt="Preview" style="display: none;">
-                    </div>
-                    <input type="file" 
-                           id="coverImage" 
-                           name="coverImage" 
-                           accept="image/*"
-                           class="image-input">
-                    <label for="coverImage" class="image-upload-label">
-                        Choose File
-                    </label>
-                    <span id="fileName" class="file-name"></span>
-                </div>
                 <button type="submit">Add Book</button>
             </form>
         </div>
     `;
 
-    const imageInput = document.getElementById('coverImage');
-    const imagePreview = document.getElementById('imagePreview');
-    const fileName = document.getElementById('fileName');
-
-    imageInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 5000000) { // 5MB limit
-                alert('Image size should be less than 5MB');
-                this.value = '';
-                imagePreview.style.display = 'none';
-                fileName.textContent = '';
-                return;
-            }
-
-            if (!file.type.startsWith('image/')) {
-                alert('Please upload an image file');
-                this.value = '';
-                imagePreview.style.display = 'none';
-                fileName.textContent = '';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                imagePreview.src = e.target.result;
-                imagePreview.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-            fileName.textContent = file.name;
-        }
-    });
     document.getElementById('addBookForm').addEventListener('submit', submitNewBook);
 }
 
@@ -797,19 +754,18 @@ function submitNewBook(event) {
     }
 
     const formData = new FormData(event.target);
-    const imageFile = formData.get('coverImage');
-
-    if (imageFile && imageFile.size > 5000000) {
-        alert('Image size should be less than 5MB');
-        return;
-    }
+    const bookData = {};
+    formData.forEach((value, key) => {
+        bookData[key] = key === 'price' || key === 'inventory' ? Number(value) : value;
+    });
 
     fetch(`${apiUrl}/books`, {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: formData
+        body: JSON.stringify(bookData)
     })
         .then(response => {
             if (response.ok) {
@@ -937,7 +893,7 @@ function submitEditBook(event) {
 /**
  * Deletes a book from the server.
  *
- * @param {Event} event - The click event triggering to delete.
+ * @param {Event} event - The click event triggering the delete.
  */
 function deleteBook(event) {
     const bookId = event.target.getAttribute('data-id');
