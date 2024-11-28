@@ -1,14 +1,15 @@
 package com.bookstore.model;
 
-import jakarta.persistence.*;
-import org.hibernate.validator.constraints.UniqueElements;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+
+@Document(collection = "books")
 public class Book {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id; // primary key
+    private String id; // Primary key
 
     @Column(unique = true)
     private String isbn;
@@ -187,7 +188,7 @@ public class Book {
      * Gets the ID of this book.
      * @return the ID of this book
      */
-    public int getId() {
+    public String getId() {
         return id;
     }
 
@@ -195,7 +196,7 @@ public class Book {
      * Sets the ID of this book.
      * @param id the new ID for this book
      */
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 }

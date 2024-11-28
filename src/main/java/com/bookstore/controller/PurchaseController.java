@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.transaction.Transactional;
-
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,9 +44,8 @@ public class PurchaseController {
      * @return ResponseEntity with status and message.
      */
     @PostMapping("/checkout")
-    @Transactional
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> checkout(@RequestBody List<CartItemDTO> cartItems , Principal principal) {
+    public ResponseEntity<String> checkout(@RequestBody List<CartItemDTO> cartItems, Principal principal) {
         String username = principal.getName();
         System.out.println("Username: " + username);
 
@@ -61,7 +58,7 @@ public class PurchaseController {
         List<PurchaseItem> purchaseItems = new ArrayList<>();
 
         for (CartItemDTO cartItemDTO : cartItems) {
-            Optional<Book> optionalBook = bookRepository.findById(cartItemDTO.getBookId());
+            Optional<Book> optionalBook = bookRepository.findById(cartItemDTO.getBookId());  // Use String ID
             if (optionalBook.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Book with ID " + cartItemDTO.getBookId() + " not found.");
@@ -69,28 +66,28 @@ public class PurchaseController {
 
             Book book = optionalBook.get();
 
-            // check if enough inventory is available
+            // Check if enough inventory is available
             if (book.getInventory() < cartItemDTO.getQuantity()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Not enough inventory for book: " + book.getTitle());
             }
 
-            // deduct the purchased quantity from the inventory
+            // Deduct the purchased quantity from the inventory
             book.setInventory(book.getInventory() - cartItemDTO.getQuantity());
             bookRepository.save(book);
 
-            // create PurchaseItem with book details
+            // Create PurchaseItem with book details
             PurchaseItem purchaseItem = new PurchaseItem(book, cartItemDTO.getQuantity(), null);
             purchaseItems.add(purchaseItem);
         }
 
-        // create a new checkout record
+        // Create a new checkout record
         Checkout purchase = new Checkout();
         purchase.setUser(user);
         purchase.setPurchaseDate(LocalDateTime.now());
         purchase.setItems(purchaseItems);
 
-        // associate purchase items with the checkout
+        // Associate purchase items with the checkout
         for (PurchaseItem item : purchaseItems) {
             item.setPurchase(purchase);
         }

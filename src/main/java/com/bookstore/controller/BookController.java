@@ -48,7 +48,7 @@ public class BookController {
      * Finds a specific book by its unique identifier.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+    public ResponseEntity<Book> getBookById(@PathVariable String id) {
         return bookRepository.findById(id)
                 .map(book -> ResponseEntity.ok().body(book))
                 .orElse(ResponseEntity.notFound().build());
@@ -128,7 +128,7 @@ public class BookController {
      * Updates an existing book's information (admin access required).
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> editBook(@PathVariable Long id, @RequestBody Book bookDetails) {
+    public ResponseEntity<?> editBook(@PathVariable String id, @RequestBody Book bookDetails) {
         // get current user from Security Context
         if (isAdmin()) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied. Admin role required.");
 
@@ -177,7 +177,7 @@ public class BookController {
      * Removes a book from the inventory (admin access required).
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBook(@PathVariable Long id) {
+    public ResponseEntity<?> deleteBook(@PathVariable String id) {
         if (isAdmin()) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied. Admin role required.");
         return bookRepository.findById(id).map(book -> {
             bookRepository.delete(book);
@@ -195,17 +195,17 @@ public class BookController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Set<Long> userBooks = getUserPurchasedBooks(user);
+        Set<String> userBooks = getUserPurchasedBooks(user);
 
         if (userBooks.isEmpty()) {
             return ResponseEntity.ok(new ArrayList<>());
         }
 
         // get all users and their purchased books
-        Map<Long, Set<Long>> userPurchaseMap = getAllUserPurchases();
+        Map<String, Set<String>> userPurchaseMap = getAllUserPurchases();
 
         // find most similar user using Jaccard similarity
-        Long mostSimilarUserId = findMostSimilarUser(user.getId(), userBooks, userPurchaseMap);
+        String mostSimilarUserId = findMostSimilarUser(user.getId(), userBooks, userPurchaseMap);
 
         if (mostSimilarUserId == null) {
             return ResponseEntity.ok(new ArrayList<>());
@@ -217,19 +217,19 @@ public class BookController {
         return ResponseEntity.ok(recommendations);
     }
 
-    private Set<Long> getUserPurchasedBooks(User user) {
+    private Set<String> getUserPurchasedBooks(User user) {
         return checkoutRepository.findByUser(user).stream()
                 .flatMap(checkout -> checkout.getItems().stream())
                 .map(PurchaseItem::getBookId) // get book IDs
                 .collect(Collectors.toSet());
     }
 
-    private Map<Long, Set<Long>> getAllUserPurchases() {
-        Map<Long, Set<Long>> purchaseMap = new HashMap<>();
+    private Map<String, Set<String>> getAllUserPurchases() {
+        Map<String, Set<String>> purchaseMap = new HashMap<>();
 
         List<User> users = userRepository.findAll();
         for (User user : users) {
-            Set<Long> userBooks = getUserPurchasedBooks(user);
+            Set<String> userBooks = getUserPurchasedBooks(user);
             if (!userBooks.isEmpty()) {
                 purchaseMap.put(user.getId(), userBooks);
             }
@@ -241,12 +241,12 @@ public class BookController {
     /**
      * Finds the most similar user to the current user based on Jaccard similarity of purchase history.
      */
-    private Long findMostSimilarUser(Long currentUserId, Set<Long> userBooks,
-                                     Map<Long, Set<Long>> userPurchaseMap) {
+    private String findMostSimilarUser(String currentUserId, Set<String> userBooks,
+                                     Map<String, Set<String>> userPurchaseMap) {
         double maxSimilarity = 0.0;
-        Long mostSimilarUserId = null;
+        String mostSimilarUserId = null;
 
-        for (Map.Entry<Long, Set<Long>> entry : userPurchaseMap.entrySet()) {
+        for (Map.Entry<String, Set<String>> entry : userPurchaseMap.entrySet()) {
             if (!entry.getKey().equals(currentUserId)) {
                 double similarity = calculateJaccardSimilarity(userBooks, entry.getValue());
                 if (similarity > maxSimilarity) {
@@ -262,15 +262,15 @@ public class BookController {
     /**
      * Calculates the Jaccard similarity between two sets.
      */
-    private double calculateJaccardSimilarity(Set<Long> set1, Set<Long> set2) {
+    private double calculateJaccardSimilarity(Set<String> set1, Set<String> set2) {
         if (set1.isEmpty() && set2.isEmpty()) {
             return 0.0;
         }
 
-        Set<Long> intersection = new HashSet<>(set1);
+        Set<String> intersection = new HashSet<>(set1);
         intersection.retainAll(set2);
 
-        Set<Long> union = new HashSet<>(set1);
+        Set<String> union = new HashSet<>(set1);
         union.addAll(set2);
 
         return (double) intersection.size() / union.size();
@@ -279,8 +279,8 @@ public class BookController {
     /**
      * Gets the recommended books for the current user based on the most similar user's purchase history.
      */
-    private List<Book> getRecommendedBooksForUser(Set<Long> userBooks, Set<Long> similarUserBooks) {
-        Set<Long> recommendedBookIds = new HashSet<>(similarUserBooks);
+    private List<Book> getRecommendedBooksForUser(Set<String> userBooks, Set<String> similarUserBooks) {
+        Set<String> recommendedBookIds = new HashSet<>(similarUserBooks);
         recommendedBookIds.removeAll(userBooks);
 
         return bookRepository.findAllById(recommendedBookIds);
@@ -297,7 +297,7 @@ public class BookController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return user.getRole() != Role.ADMIN;
+        return user.getRole() == Role.ADMIN;
     }
 
 

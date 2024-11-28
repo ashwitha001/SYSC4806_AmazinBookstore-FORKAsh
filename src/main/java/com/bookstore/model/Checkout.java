@@ -2,28 +2,20 @@ package com.bookstore.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+import jakarta.persistence.Id;
+
+@Document(collection = "checkouts")
 public class Checkout {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @JsonBackReference
-    @ManyToOne
+    @DBRef
     private User user;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL)
+    @DBRef
     private List<PurchaseItem> items;
 
     private LocalDateTime purchaseDate;
@@ -51,7 +43,7 @@ public class Checkout {
      * Gets the ID of the checkout.
      * @return the ID of the checkout
      */
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -59,7 +51,7 @@ public class Checkout {
      * Sets the ID of the checkout.
      * @param id the new ID of the checkout
      */
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

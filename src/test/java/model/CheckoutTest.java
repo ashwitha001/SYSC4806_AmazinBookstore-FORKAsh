@@ -23,13 +23,13 @@ public class CheckoutTest {
         
         Book book = new Book(
                 "Test ISBN",
-            "Test Title",
-            "Test Description",
-            "Test Author",
-            "Test Publisher",
-            "http://example.com/test.jpg",
-            10.00,
-            100
+                "Test Title",
+                "Test Description",
+                "Test Author",
+                "Test Publisher",
+                "http://example.com/test.jpg",
+                10.00,
+                100
         );
         PurchaseItem item = new PurchaseItem(book, 2, checkout);
         items.add(item);
@@ -40,14 +40,14 @@ public class CheckoutTest {
 
     @Test
     public void getId() {
-        checkout.setId(1L);
-        assertEquals(Long.valueOf(1L), checkout.getId());
+        checkout.setId("1");
+        assertEquals("1", checkout.getId());
     }
 
     @Test
     public void setId() {
-        checkout.setId(2L);
-        assertEquals(Long.valueOf(2L), checkout.getId());
+        checkout.setId("2");
+        assertEquals("2", checkout.getId());
     }
 
     @Test
